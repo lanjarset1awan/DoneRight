@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function UserReport({ token, user, onLogout, onNavigateDashboard }) {
+export default function UserReport({ token, onLogout, onNavigateDashboard }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -13,10 +13,6 @@ export default function UserReport({ token, user, onLogout, onNavigateDashboard 
       setToast({ show: false, message: "", type: "success" });
     }, 4000);
   };
-
-  useEffect(() => {
-    fetchStats();
-  }, []);
 
   const fetchStats = async () => {
     try {
@@ -33,6 +29,12 @@ export default function UserReport({ token, user, onLogout, onNavigateDashboard 
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchStats();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleDownloadPDF = async () => {
     setDownloading(true);

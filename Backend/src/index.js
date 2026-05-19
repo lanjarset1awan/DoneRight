@@ -83,3 +83,5 @@ app.use(
     "/api/statistics",
     statisticsRoutes
 );
+
+export default app;

@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
-const BASE_URL = "http://localhost:5000/api";
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function Trash({ token, onLogout, onNavigateDashboard }) {
   const [trashTasks, setTrashTasks] = useState([]);
@@ -16,10 +16,6 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
     cancelText: "Batal",
     isDanger: true
   });
-
-  useEffect(() => {
-    fetchTrash();
-  }, []);
 
   const fetchTrash = async () => {
     setLoading(true);
@@ -37,6 +33,12 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTrash();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Restore task (individual)
   const handleRestore = async (id) => {
