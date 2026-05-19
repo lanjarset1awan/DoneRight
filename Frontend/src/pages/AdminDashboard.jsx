@@ -216,8 +216,14 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
   const totalTasksCount = stats ? stats.total_tasks || 0 : allTasks.length;
   const completedTasksCount = stats ? stats.completed_tasks || 0 : allTasks.filter((t) => t.is_completed).length;
   const overdueCount = overdueTasks.length;
-  const activeCount = Math.max(0, totalTasksCount - completedTasksCount - overdueCount);
+  const now = new Date();
+  const activeCount = allTasks.filter((t) => {
+    const deadline = t.deadline ? new Date(t.deadline) : null;
+    const isOverdue = !t.is_completed && deadline && deadline < now;
+    return !t.is_completed && !isOverdue;
+  }).length;
   const completionRate = totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0;
+
 
   let highCount = 0;
   let mediumCount = 0;
@@ -440,15 +446,21 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                       allTasks.map((task) => {
                         const now = new Date();
                         const deadline = task.deadline ? new Date(task.deadline) : null;
+                        const completedAt = task.completed_at ? new Date(task.completed_at) : null;
+                        const isOverdue = deadline && (
+                          (!task.is_completed && deadline < now) ||
+                          (task.is_completed && completedAt && completedAt > deadline)
+                        );
 
                         let statusBadge;
-                        if (task.is_completed) {
-                          statusBadge = <span className="badge badge-completed">COMPLETED</span>;
-                        } else if (deadline && deadline < now) {
+                        if (isOverdue) {
                           statusBadge = <span className="badge badge-overdue">OVERDUE</span>;
+                        } else if (task.is_completed) {
+                          statusBadge = <span className="badge badge-completed">COMPLETED</span>;
                         } else {
                           statusBadge = <span className="badge badge-active">ACTIVE</span>;
                         }
+
 
                         return (
                           <tr key={task.id_tasks}>

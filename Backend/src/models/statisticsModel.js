@@ -47,7 +47,13 @@ export const getGlobalStatistics =
                             t.deadline IS NULL
                             OR t.deadline >= NOW()
                         )
-                ) AS pending
+                ) AS pending,
+
+                COUNT(*) FILTER (
+                    WHERE
+                        t.is_completed = TRUE
+                ) AS completed_tasks
+
 
             FROM users u
 
@@ -114,7 +120,13 @@ export const getUserStatistics =
                             t.deadline IS NULL
                             OR t.deadline >= NOW()
                         )
-                ) AS pending
+                ) AS pending,
+
+                COUNT(*) FILTER (
+                    WHERE
+                        t.is_completed = TRUE
+                ) AS completed_tasks
+
 
             FROM users u
 
@@ -158,31 +170,42 @@ export const getSingleUserStats =
 
                 COUNT(*) FILTER (
                     WHERE
-                    t.is_completed = TRUE
-                    AND
-                    (
-                        t.completed_at
-                        <= t.deadline
-
-                        OR
-
-                        t.deadline
-                        IS NULL
-                    )
+                        t.is_completed = TRUE
+                        AND (
+                            t.deadline IS NULL
+                            OR t.completed_at <= t.deadline
+                        )
                 ) AS on_time,
 
                 COUNT(*) FILTER (
                     WHERE
-                    t.is_completed = TRUE
-                    AND
-                    t.completed_at
-                    > t.deadline
+                        (
+                            t.is_completed = TRUE
+                            AND t.deadline IS NOT NULL
+                            AND t.completed_at > t.deadline
+                        )
+                        OR
+                        (
+                            t.is_completed = FALSE
+                            AND t.deadline IS NOT NULL
+                            AND t.deadline < NOW()
+                        )
                 ) AS overdue,
 
                 COUNT(*) FILTER (
                     WHERE
-                    t.is_completed = FALSE
-                ) AS pending
+                        t.is_completed = FALSE
+                        AND (
+                            t.deadline IS NULL
+                            OR t.deadline >= NOW()
+                        )
+                ) AS pending,
+
+                COUNT(*) FILTER (
+                    WHERE
+                        t.is_completed = TRUE
+                ) AS completed_tasks
+
 
             FROM users u
 

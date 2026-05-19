@@ -35,9 +35,13 @@ export const getOverdueTasks =
       SELECT *
       FROM tasks
       WHERE
-        deadline < NOW()
-        AND is_completed = false
-        AND deleted_at IS NULL
+        deleted_at IS NULL
+        AND (
+          (is_completed = false AND deadline < NOW())
+          OR
+          (is_completed = true AND completed_at > deadline)
+        )
+      ORDER BY deadline ASC
     `;
 
         const result =
@@ -45,6 +49,7 @@ export const getOverdueTasks =
 
         return result.rows;
     };
+
 
 // DASHBOARD STAT
 export const getStatistics =

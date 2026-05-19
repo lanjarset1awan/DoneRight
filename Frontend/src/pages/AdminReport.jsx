@@ -19,17 +19,15 @@ export default function AdminReport({ token, onLogout, onNavigateDashboard }) {
 
   const fetchGlobalReport = async () => {
     try {
-      const statsRes = await fetch(`${BASE_URL}/admin/statistics`, {
+      const statsRes = await fetch(`${BASE_URL}/statistics/global`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const statsData = statsRes.ok ? await statsRes.json() : null;
       setStats(statsData);
 
-      const overdueRes = await fetch(`${BASE_URL}/admin/overdue`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      const overdueList = overdueRes.ok ? await overdueRes.json() : [];
-      setOverdueCount(overdueList.length);
+      if (statsData) {
+        setOverdueCount(Number(statsData.overdue) || 0);
+      }
     } catch (err) {
       console.error("Global report load error:", err);
     } finally {
@@ -68,9 +66,11 @@ export default function AdminReport({ token, onLogout, onNavigateDashboard }) {
     }
   };
 
-  const total = stats ? stats.total_tasks || 0 : 0;
-  const completed = stats ? stats.completed_tasks || 0 : 0;
-  const completionRate = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const total = stats ? Number(stats.total_tasks) || 0 : 0;
+  const completed = stats ? Number(stats.completed_tasks) || 0 : 0;
+  const onTime = stats ? Number(stats.on_time) || 0 : 0;
+  const completionRate = total > 0 ? Math.round((onTime / total) * 100) : 0;
+
 
   return (
     <div>

@@ -76,7 +76,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
   const [filterPriority, setFilterPriority] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
 
-  const [sortBy, setSortBy] = useState("deadline");
+  const [sortBy, setSortBy] = useState("newest");
   const [viewMode, setViewMode] = useState("list");
 
   // Modals
@@ -404,7 +404,11 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
     let matchesStatus = true;
     const now = new Date();
     const deadline = task.deadline ? new Date(task.deadline) : null;
-    const isOverdue = !task.is_completed && deadline && deadline < now;
+    const completedAt = task.completed_at ? new Date(task.completed_at) : null;
+    const isOverdue = deadline && (
+      (!task.is_completed && deadline < now) ||
+      (task.is_completed && completedAt && completedAt > deadline)
+    );
 
     if (filterStatus === "pending") {
       matchesStatus = !task.is_completed && !isOverdue;
@@ -433,6 +437,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
       return priorityOrder[a.priority] - priorityOrder[b.priority];
     });
+
 
   const groupedTasks = filteredTasks.reduce((groups, task) => {
     const key = task.category_name || "Tanpa Kategori";
@@ -629,8 +634,13 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
           ) : viewMode === "list" ? (
             filteredTasks.map((task) => {
               const deadline = task.deadline ? new Date(task.deadline) : null;
+              const completedAt = task.completed_at ? new Date(task.completed_at) : null;
               const now = new Date();
-              const isOverdue = !task.is_completed && deadline && deadline < now;
+              const isOverdue = deadline && (
+                (!task.is_completed && deadline < now) ||
+                (task.is_completed && completedAt && completedAt > deadline)
+              );
+
 
               return (
                 <div className="task-item" key={task.id_tasks}>
@@ -739,8 +749,13 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
                 {categoryTasks.map((task) => {
                   const deadline = task.deadline ? new Date(task.deadline) : null;
+                  const completedAt = task.completed_at ? new Date(task.completed_at) : null;
                   const now = new Date();
-                  const isOverdue = !task.is_completed && deadline && deadline < now;
+                  const isOverdue = deadline && (
+                    (!task.is_completed && deadline < now) ||
+                    (task.is_completed && completedAt && completedAt > deadline)
+                  );
+
 
                   return (
                     <div className="task-item" key={task.id_tasks}>
