@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../style/pages/Login.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -70,14 +71,14 @@ export default function Login({ onLoginSuccess, onNavigateRegister }) {
           <h2>Login</h2>
           
           {errorMsg && (
-            <div style={{ color: "#ef4444", fontSize: "14px", marginBottom: "16px", fontWeight: 500 }}>
+            <div className="auth-error-msg">
               ⚠ {errorMsg}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="email">Email *</label>
+              <label htmlFor="email">Email</label>
               <input
                 type="email"
                 id="email"
@@ -91,7 +92,7 @@ export default function Login({ onLoginSuccess, onNavigateRegister }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">Password</label>
               <input
                 type="password"
                 id="password"
@@ -104,8 +105,9 @@ export default function Login({ onLoginSuccess, onNavigateRegister }) {
               />
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: "8px" }}>
-              {loading ? "Login" : "Login"}
+
+            <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
+              {loading ? "Loading..." : "Login"}
             </button>
           </form>
 

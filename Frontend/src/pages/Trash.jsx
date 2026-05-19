@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "../style/pages/Trash.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -198,40 +199,10 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
       {/* MAIN CONTAINER */}
       <div className="dashboard-container">
         {/* HEADER ROW WITH ACTION BUTTONS */}
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            flexWrap: "wrap",
-            gap: "12px",
-            marginBottom: "24px",
-          }}
-        >
+        <div className="trash-header-row">
           <button 
-            className="btn-secondary" 
+            className="btn-secondary trash-btn-back" 
             onClick={onNavigateDashboard}
-            style={{ 
-              display: "inline-flex", 
-              alignItems: "center", 
-              gap: "8px", 
-              padding: "10px 16px",
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "10px",
-              color: "#475569",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#f8fafc";
-              e.currentTarget.style.borderColor = "#cbd5e1";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#ffffff";
-              e.currentTarget.style.borderColor = "#e2e8f0";
-            }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -242,29 +213,9 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
           {trashTasks.length > 0 && (
             <div className="btn-group-row" style={{ gap: "10px" }}>
               <button
-                className="btn-secondary"
+                className="btn-secondary trash-btn-restore-all"
                 onClick={handleRestoreAll}
                 disabled={processing}
-                style={{ 
-                  backgroundColor: "#ecfdf5", 
-                  color: "#10b981", 
-                  fontSize: "14px", 
-                  fontWeight: "600",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "10px 16px",
-                  borderRadius: "10px",
-                  border: "1px solid #d1fae5",
-                  cursor: "pointer",
-                  transition: "all 0.2s"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#d1fae5";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#ecfdf5";
-                }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
@@ -272,30 +223,9 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
                 Pulihkan Semua
               </button>
               <button
-                className="btn-primary"
+                className="btn-primary trash-btn-clear-all"
                 onClick={handleClearAll}
                 disabled={processing}
-                style={{ 
-                  backgroundColor: "#ef4444", 
-                  borderColor: "#ef4444", 
-                  fontSize: "14px", 
-                  fontWeight: "600",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  gap: "6px",
-                  padding: "10px 16px",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  transition: "all 0.2s"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "#dc2626";
-                  e.currentTarget.style.borderColor = "#dc2626";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "#ef4444";
-                  e.currentTarget.style.borderColor = "#ef4444";
-                }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -307,9 +237,9 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
         </div>
 
         {/* TRASHED TASKS BOARD */}
-        <div className="board-card" style={{ marginBottom: "20px" }}>
-          <div className="board-header" style={{ marginBottom: "20px" }}>
-            <div className="board-title" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+        <div className="board-card trash-board-card">
+          <div className="board-header trash-board-header">
+            <div className="board-title trash-board-title">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#ef4444" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -325,25 +255,25 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
                 <p>Memuat keranjang sampah...</p>
               </div>
             ) : trashTasks.length === 0 ? (
-              <div className="empty-state" style={{ padding: "60px 20px" }}>
-                <div className="empty-state-icon" style={{ fontSize: "56px", opacity: 0.7 }}>
+              <div className="empty-state trash-empty-state">
+                <div className="empty-state-icon trash-empty-icon">
                   🗑️
                 </div>
-                <h3 style={{ fontSize: "18px", color: "var(--text-main)", marginTop: "12px", fontWeight: "600" }}>
+                <h3 className="trash-empty-title">
                   Keranjang Sampah Kosong
                 </h3>
-                <p style={{ fontSize: "14px", color: "var(--text-muted)", marginTop: "6px" }}>
+                <p className="trash-empty-subtitle">
                   Tugas yang Anda hapus sementara akan tampil di sini untuk dipulihkan kembali.
                 </p>
               </div>
             ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div className="trash-list-container">
                 {trashTasks.map((task) => {
                   const deadline = task.deadline ? new Date(task.deadline) : null;
                   return (
-                    <div className="task-item" key={task.id_tasks} style={{ borderLeft: "4px solid #ef4444", margin: 0 }}>
+                    <div className="task-item trash-task-item" key={task.id_tasks}>
                       <div className="task-left">
-                        <h3 className="task-title" style={{ color: "#334155" }}>
+                        <h3 className="task-title trash-task-title">
                           {task.title}
                         </h3>
                         {task.description && <p className="task-desc">{task.description}</p>}
@@ -366,30 +296,11 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
                         </div>
                       </div>
 
-                      <div className="task-right" style={{ gap: "8px", justifyContent: "center", flexDirection: "row", alignSelf: "center" }}>
+                      <div className="task-right trash-task-right">
                         <button
                           onClick={() => handleRestore(task.id_tasks)}
                           disabled={processing}
-                          style={{ 
-                            background: "#ecfdf5", 
-                            border: "1px solid #d1fae5", 
-                            borderRadius: "8px", 
-                            padding: "6px 12px", 
-                            color: "#10b981", 
-                            fontSize: "13px", 
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            transition: "all 0.2s"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#d1fae5";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "#ecfdf5";
-                          }}
+                          className="trash-btn-restore-single"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
@@ -399,26 +310,7 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
                         <button
                           onClick={() => handleDeletePermanent(task.id_tasks)}
                           disabled={processing}
-                          style={{ 
-                            background: "#fef2f2", 
-                            border: "1px solid #fee2e2", 
-                            borderRadius: "8px", 
-                            padding: "6px 12px", 
-                            color: "#ef4444", 
-                            fontSize: "13px", 
-                            fontWeight: "600",
-                            cursor: "pointer",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            gap: "4px",
-                            transition: "all 0.2s"
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.background = "#fee2e2";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.background = "#fef2f2";
-                          }}
+                          className="trash-btn-delete-permanent"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -435,7 +327,7 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
         </div>
       {/* CUSTOM CONFIRMATION MODAL */}
       {confirmModal.show && (
-        <div className="modal-overlay active" style={{ zIndex: 200 }}>
+        <div className="modal-overlay active trash-modal-overlay">
           <div className="modal-content" style={{ maxWidth: "420px" }}>
             <div className="modal-header">
               <div className="modal-title" style={{ color: confirmModal.isDanger ? "#ef4444" : "#0f172a" }}>
@@ -443,48 +335,41 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
               </div>
               <button
                 type="button"
-                className="btn-close-modal"
+                className="trash-modal-close"
                 onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                style={{
-                  background: "none",
-                  border: "none",
-                  fontSize: "24px",
-                  color: "#94a3b8",
-                  cursor: "pointer",
-                  transition: "color 0.2s"
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.color = "#475569"}
-                onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
               >
                 &times;
               </button>
             </div>
             <div className="modal-body">
-              <p style={{ fontSize: "14px", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+              <p className="trash-modal-body-text">
                 {confirmModal.message}
               </p>
             </div>
-            <div className="modal-footer" style={{ borderTop: "none", backgroundColor: "#f8fafc", padding: "16px 24px" }}>
+            <div className="modal-footer trash-modal-footer">
               <button
                 type="button"
-                className="btn-batal"
+                className="btn-batal trash-btn-modal-cancel"
                 onClick={() => {
                   if (confirmModal.onCancel) confirmModal.onCancel();
                   setConfirmModal({ ...confirmModal, show: false });
                 }}
-                style={{ margin: 0, padding: "10px 20px" }}
               >
                 {confirmModal.cancelText}
               </button>
               <button
                 type="button"
-                className={confirmModal.isDanger ? "btn-hapus-modal" : "btn-simpan"}
+                className={`${confirmModal.isDanger ? "btn-hapus-modal" : "btn-simpan"} trash-btn-modal-confirm`}
                 onClick={() => {
                   if (confirmModal.onConfirm) confirmModal.onConfirm();
                   setConfirmModal({ ...confirmModal, show: false });
                 }}
-                style={{ margin: 0, padding: "10px 24px" }}
               >
+                {confirmModal.isDanger && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ fill: "none" }}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                )}
                 {confirmModal.confirmText}
               </button>
             </div>

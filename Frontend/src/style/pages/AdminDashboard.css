@@ -1,0 +1,173 @@
+/* AdminDashboard.css */
+
+.admin-dash-header-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-dash-btn-report {
+    background-color: #00a854;
+    border: 1px solid #00a854;
+    padding: 6px 14px;
+    font-size: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 6px;
+    color: #ffffff;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.admin-dash-btn-report:hover {
+    background-color: #008c45;
+    border-color: #008c45;
+}
+
+.admin-dash-board-title {
+    margin-bottom: 20px;
+}
+
+.admin-dash-empty-td {
+    text-align: center;
+    color: var(--text-muted);
+}
+
+.admin-dash-task-item-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.admin-dash-task-item-desc {
+    font-size: 14px;
+    margin-bottom: 14px;
+}
+
+.admin-dash-badge-high {
+    font-weight: 600;
+}
+
+.admin-dash-badge-overdue {
+    font-weight: 500;
+}
+
+.admin-dash-btn-manage-cats {
+    padding: 8px 16px;
+    font-size: 14px;
+}
+
+.admin-dash-empty-state-full {
+    grid-column: span 2;
+}
+
+.admin-dash-cats-row {
+    display: flex;
+    gap: 8px;
+}
+
+.admin-dash-cat-del-icon {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background-color: #fee2e2;
+    color: #ef4444;
+}
+
+.admin-dash-cat-del-icon:hover {
+    background-color: #fecaca;
+}
+
+.admin-dash-cat-svg-icon {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+}
+
+.admin-dash-modal-overlay {
+    z-index: 200;
+}
+
+.admin-dash-modal-title-danger {
+    color: #ef4444;
+}
+
+.admin-dash-modal-title-default {
+    color: #0f172a;
+}
+
+.admin-dash-modal-close {
+    background: none;
+    border: none;
+    font-size: 24px;
+    color: #94a3b8;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.admin-dash-modal-close:hover {
+    color: #475569;
+}
+
+.admin-dash-modal-body-text {
+    font-size: 14px;
+    color: #475569;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.admin-dash-modal-footer {
+    border-top: none !important;
+    background-color: #f8fafc !important;
+    padding: 16px 24px !important;
+}
+
+.admin-dash-modal-btn-cancel {
+    margin: 0 !important;
+    padding: 10px 20px !important;
+}
+
+.admin-dash-modal-btn-confirm {
+    margin: 0 !important;
+    padding: 10px 24px !important;
+    display: inline-flex !important;
+    gap: 6px !important;
+    align-items: center !important;
+    justify-content: center !important;
+}
+
+@media (max-width: 640px) {
+    .admin-dash-header-row {
+        gap: 8px;
+    }
+    .admin-dash-btn-report {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    .admin-dash-btn-manage-cats {
+        width: 100%;
+        text-align: center;
+        justify-content: center;
+        margin-top: 8px;
+    }
+    .category-admin-card {
+        padding: 16px;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .admin-dash-cats-row {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+

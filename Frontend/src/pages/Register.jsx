@@ -1,4 +1,5 @@
 import { useState } from "react";
+import "../style/pages/Register.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -93,20 +94,21 @@ export default function Register({ onNavigateLogin }) {
           <h2>Registrasi</h2>
           
           {errorMsg && (
-            <div style={{ color: "#ef4444", fontSize: "14px", marginBottom: "16px", fontWeight: 500 }}>
+            <div className="auth-error-msg">
               ⚠ {errorMsg}
             </div>
           )}
 
           {successMsg && (
-            <div style={{ color: "#10b981", fontSize: "14px", marginBottom: "16px", fontWeight: 500 }}>
+            <div className="auth-success-msg">
               ✓ {successMsg}
             </div>
           )}
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label htmlFor="username">Nama Lengkap Anda *</label>
+              <label htmlFor="username">Nama Lengkap Anda</label>
+
               <input
                 type="text"
                 id="username"
@@ -120,7 +122,7 @@ export default function Register({ onNavigateLogin }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="email">Alamat Email *</label>
+              <label htmlFor="email">Alamat Email</label>
               <input
                 type="email"
                 id="email"
@@ -134,7 +136,7 @@ export default function Register({ onNavigateLogin }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password *</label>
+              <label htmlFor="password">Password</label>
               <input
                 type="password"
                 id="password"
@@ -149,7 +151,6 @@ export default function Register({ onNavigateLogin }) {
 
             <div className="form-group">
               <label htmlFor="confirmPassword">Konfirmasi Password</label>
-
               <input
                 type="password"
                 id="confirmPassword"
@@ -160,8 +161,9 @@ export default function Register({ onNavigateLogin }) {
               />
             </div>
 
-            <button type="submit" className="btn-primary" disabled={loading} style={{ marginTop: "8px" }}>
-              {loading ? "Mendaftar..." : "Daftar"}
+
+            <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>
+              {loading ? "Loading..." : "Daftar"}
             </button>
           </form>
 

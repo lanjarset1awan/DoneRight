@@ -1,6 +1,68 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import "../style/pages/Dashboard.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+
+function CustomSelect({ value, onChange, options, placeholder, isFormInput = false }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => String(o.value) === String(value));
+
+  return (
+    <div ref={dropdownRef} className="custom-select-container dashboard-select-container">
+      <div 
+        className={`custom-select-trigger ${isFormInput ? "dashboard-select-trigger-form" : "dashboard-select-trigger-filter"} ${isOpen ? "open" : ""} ${selectedOption && selectedOption.value !== "" ? "has-value" : ""}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{selectedOption ? selectedOption.label : placeholder}</span>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="16" 
+          height="16" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor" 
+          strokeWidth={2.5}
+          className={`dashboard-select-icon ${isOpen ? "open" : ""}`}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+      {isOpen && (
+        <div className="custom-select-options dashboard-select-options">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className={`custom-select-option dashboard-select-option ${String(value) === String(option.value) ? "selected" : ""}`}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              <span>{option.label}</span>
+              {String(value) === String(option.value) && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Dashboard({ token, user, onLogout, onNavigateReport, onNavigateTrash }) {
   // State
@@ -438,43 +500,20 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
         {/* DAFTAR TUGAS FILTER BOARD */}
         <div className="board-card">
           <div className="board-header">
-            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+            <div className="dashboard-actions-left">
               <div className="board-title">Daftar Tugas</div>
 
-              <div
-                style={{
-                  display: "flex",
-                  background: "#f1f5f9",
-                  borderRadius: "10px",
-                  padding: "4px",
-                }}
-              >
+              <div className="dashboard-viewmode-switcher">
                 <button
                   onClick={() => setViewMode("list")}
-                  style={{
-                    border: "none",
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                    background: viewMode === "list" ? "white" : "transparent",
-                    color: viewMode === "list" ? "#4f46e5" : "#64748b",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                  }}
+                  className={`dashboard-viewmode-btn ${viewMode === "list" ? "active" : ""}`}
                 >
                   Daftar
                 </button>
 
                 <button
                   onClick={() => setViewMode("grouped")}
-                  style={{
-                    border: "none",
-                    padding: "6px 12px",
-                    borderRadius: "8px",
-                    background: viewMode === "grouped" ? "white" : "transparent",
-                    color: viewMode === "grouped" ? "#4f46e5" : "#64748b",
-                    cursor: "pointer",
-                    fontWeight: 600,
-                  }}
+                  className={`dashboard-viewmode-btn ${viewMode === "grouped" ? "active" : ""}`}
                 >
                   Per Kategori
                 </button>
@@ -482,9 +521,8 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
             </div>
             <div className="btn-group-row">
               <button
-                className="btn-primary"
+                className="btn-primary dashboard-btn-report"
                 onClick={onNavigateReport}
-                style={{ backgroundColor: "#00a854", borderColor: "#00a854", padding: "8px 16px", fontSize: "14px", display: "inline-flex", gap: "6px", alignItems: "center" }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -492,9 +530,8 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 Laporan
               </button>
               <button
-                className="btn-secondary"
+                className="btn-secondary dashboard-btn-trash"
                 onClick={onNavigateTrash}
-                style={{ backgroundColor: "#fee2e2", color: "#b91c1c", padding: "8px 16px", fontSize: "14px", display: "inline-flex", gap: "6px", alignItems: "center" }}
                 title="Keranjang Sampah"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -503,13 +540,12 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 Sampah
               </button>
               <button
-                className="btn-secondary"
+                className="btn-secondary dashboard-btn-admin"
                 onClick={() => setShowCategoryModal(true)}
-                style={{ backgroundColor: "#f1f5f9", color: "#475569" }}
               >
                 <span className="btn-icon-add">+</span> Kategori
               </button>
-              <button className="btn-primary" onClick={openAddTask} style={{ padding: "8px 16px", fontSize: "14px" }}>
+              <button className="btn-primary dashboard-btn-add" onClick={openAddTask}>
                 <span className="btn-icon-add">+</span> Tambah Tugas
               </button>
             </div>
@@ -525,51 +561,54 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
               onChange={(e) => setSearch(e.target.value)}
             />
 
-            <select
-              className="filter-input"
+            <CustomSelect
               value={filterCategory}
-              onChange={(e) => setFilterCategory(e.target.value)}
-            >
-              <option value="">Semua Kategori</option>
-              <option value="null">Tanpa Kategori</option>
-              {categories.map((cat) => (
-                <option key={cat.id_categories} value={cat.id_categories}>
-                  {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
-                </option>
-              ))}
-            </select>
+              onChange={setFilterCategory}
+              options={[
+                { value: "", label: "Semua Kategori" },
+                { value: "null", label: "Tanpa Kategori" },
+                ...categories.map((cat) => ({
+                  value: cat.id_categories,
+                  label: cat.name.charAt(0).toUpperCase() + cat.name.slice(1)
+                }))
+              ]}
+              placeholder="Pilih Kategori"
+            />
 
-            <select
-              className="filter-input"
+            <CustomSelect
               value={filterPriority}
-              onChange={(e) => setFilterPriority(e.target.value)}
-            >
-              <option value="">Semua Prioritas</option>
-              <option value="high">High</option>
-              <option value="medium">Medium</option>
-              <option value="low">Low</option>
-            </select>
+              onChange={setFilterPriority}
+              options={[
+                { value: "", label: "Semua Prioritas" },
+                { value: "high", label: "High" },
+                { value: "medium", label: "Medium" },
+                { value: "low", label: "Low" }
+              ]}
+              placeholder="Pilih Prioritas"
+            />
 
-            <select
-              className="filter-input"
+            <CustomSelect
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value)}
-            >
-              <option value="">Semua Status</option>
-              <option value="done">Selesai</option>
-              <option value="pending">Belum Selesai</option>
-              <option value="overdue">Overdue</option>
-            </select>
+              onChange={setFilterStatus}
+              options={[
+                { value: "", label: "Semua Status" },
+                { value: "done", label: "Selesai" },
+                { value: "pending", label: "Belum Selesai" },
+                { value: "overdue", label: "Overdue" }
+              ]}
+              placeholder="Pilih Status"
+            />
 
-            <select
-              className="filter-input"
+            <CustomSelect
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-            >
-              <option value="deadline">Deadline</option>
-              <option value="priority">Prioritas</option>
-              <option value="newest">Terbaru</option>
-            </select>
+              onChange={setSortBy}
+              options={[
+                { value: "deadline", label: "Urutkan: Deadline" },
+                { value: "priority", label: "Urutkan: Prioritas" },
+                { value: "newest", label: "Urutkan: Terbaru" }
+              ]}
+              placeholder="Urutkan"
+            />
           </div>
         </div>
 
@@ -778,18 +817,8 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 </div>
                 <button
                   type="button"
-                  className="btn-close-modal"
+                  className="btn-close-modal dashboard-modal-close"
                   onClick={() => setShowTaskModal(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    color: "#94a3b8",
-                    cursor: "pointer",
-                    transition: "color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "#475569"}
-                  onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
                 >
                   &times;
                 </button>
@@ -814,7 +843,6 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                     <textarea
                       className="form-input"
                       placeholder="Deskripsi tugas (opsional)"
-                      style={{ height: "100px", resize: "vertical" }}
                       value={taskDesc}
                       onChange={(e) => setTaskDesc(e.target.value)}
                       disabled={taskSubmitting}
@@ -823,34 +851,34 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
                   <div className="form-group">
                     <label>Kategori</label>
-                    <select
-                      className="form-input"
+                    <CustomSelect
                       value={taskCategory}
-                      onChange={(e) => setTaskCategory(e.target.value)}
-                      disabled={taskSubmitting}
-                    >
-                      <option value="">Tanpa Kategori</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id_categories} value={cat.id_categories}>
-                          {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={setTaskCategory}
+                      isFormInput={true}
+                      options={[
+                        { value: "", label: "Tanpa Kategori" },
+                        ...categories.map((cat) => ({
+                          value: cat.id_categories,
+                          label: cat.name.charAt(0).toUpperCase() + cat.name.slice(1)
+                        }))
+                      ]}
+                      placeholder="Pilih Kategori"
+                    />
                   </div>
 
                   <div className="form-group">
                     <label>Prioritas *</label>
-                    <select
-                      className="form-input"
+                    <CustomSelect
                       value={taskPriority}
-                      onChange={(e) => setTaskPriority(e.target.value)}
-                      required
-                      disabled={taskSubmitting}
-                    >
-                      <option value="high">High</option>
-                      <option value="medium">Medium</option>
-                      <option value="low">Low</option>
-                    </select>
+                      onChange={setTaskPriority}
+                      isFormInput={true}
+                      options={[
+                        { value: "high", label: "High" },
+                        { value: "medium", label: "Medium" },
+                        { value: "low", label: "Low" }
+                      ]}
+                      placeholder="Pilih Prioritas"
+                    />
                   </div>
 
                   <div className="form-group">
@@ -891,32 +919,22 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 <div className="modal-title">Detail Tugas</div>
                 <button
                   type="button"
-                  className="btn-close-modal"
+                  className="btn-close-modal dashboard-modal-close"
                   onClick={() => setShowDetailModal(false)}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    color: "#94a3b8",
-                    cursor: "pointer",
-                    transition: "color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "#475569"}
-                  onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
                 >
                   &times;
                 </button>
               </div>
               <div className="modal-body">
-                <div className="detail-grid">
-                  <div className="detail-item" style={{ gridColumn: "span 2" }}>
+                <div className="detail-grid dashboard-detail-grid">
+                  <div className="detail-item dashboard-detail-item-full">
                     <span className="detail-label">Judul</span>
-                    <span className="detail-value" style={{ fontSize: "18px", color: "var(--text-main)", fontWeight: 700 }}>{selectedTask.title}</span>
+                    <span className="detail-value dashboard-detail-title">{selectedTask.title}</span>
                   </div>
 
-                  <div className="detail-item" style={{ gridColumn: "span 2" }}>
+                  <div className="detail-item dashboard-detail-item-full">
                     <span className="detail-label">Deskripsi</span>
-                    <span className="detail-value detail-value-span" style={{ whiteSpace: "pre-line", lineHeight: 1.5 }}>
+                    <span className="detail-value detail-value-span dashboard-detail-desc">
                       {selectedTask.description || "-"}
                     </span>
                   </div>
@@ -933,7 +951,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
                   <div className="detail-item">
                     <span className="detail-label">Prioritas</span>
-                    <span className={`badge badge-${selectedTask.priority}`} style={{ width: "fit-content", marginTop: "4px", fontSize: "12px", padding: "4px 10px" }}>
+                    <span className={`badge badge-${selectedTask.priority} dashboard-detail-badge`}>
                       {selectedTask.priority.toUpperCase()}
                     </span>
                   </div>
@@ -949,13 +967,13 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
                   <div className="detail-item">
                     <span className="detail-label">Status</span>
-                    <div style={{ marginTop: "4px" }}>
+                    <div className="dashboard-detail-status-wrapper">
                       {selectedTask.is_completed ? (
-                        <span className="badge badge-completed" style={{ width: "fit-content", fontSize: "12px", padding: "4px 10px" }}>✓ Selesai</span>
+                        <span className="badge badge-completed dashboard-detail-badge">✓ Selesai</span>
                       ) : (selectedTask.deadline && new Date(selectedTask.deadline) < new Date() ? (
-                        <span className="badge badge-overdue" style={{ width: "fit-content", fontSize: "12px", padding: "4px 10px" }}>⚠ Overdue</span>
+                        <span className="badge badge-overdue dashboard-detail-badge">⚠ Overdue</span>
                       ) : (
-                        <span className="badge badge-pending" style={{ width: "fit-content", fontSize: "12px", padding: "4px 10px", backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", color: "#64748b", fontWeight: 600 }}>Aktif</span>
+                        <span className="badge badge-pending dashboard-detail-badge" style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", color: "#64748b", fontWeight: 600 }}>Aktif</span>
                       ))}
                     </div>
                   </div>
@@ -996,55 +1014,43 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 <div className="modal-title">Kelola Kategori</div>
                 <button
                   type="button"
-                  className="btn-close-modal"
+                  className="btn-close-modal dashboard-modal-close"
                   onClick={() => {
                     setShowCategoryModal(false);
                     setCategoryName("");
                     setEditingCategory(null);
                   }}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    color: "#94a3b8",
-                    cursor: "pointer",
-                    transition: "color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "#475569"}
-                  onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
                 >
                   &times;
                 </button>
               </div>
               <form onSubmit={handleCategorySubmit}>
                 <div className="modal-body">
-                  <div className="form-group" style={{ marginBottom: "20px" }}>
-                    <label style={{ fontWeight: 600, display: "block", marginBottom: "8px" }}>
+                  <div className="form-group dashboard-manage-cats-group">
+                    <label className="dashboard-manage-cats-label">
                       {editingCategory ? `Edit Kategori "${editingCategory.name}" *` : "Tambah Kategori Baru *"}
                     </label>
-                    <div style={{ display: "flex", gap: "8px" }}>
+                    <div className="dashboard-manage-cats-input-row">
                       <input
                         type="text"
-                        className="form-input"
+                        className="form-input dashboard-manage-cats-input"
                         placeholder="Masukkan nama kategori"
                         value={categoryName}
                         onChange={(e) => setCategoryName(e.target.value)}
                         required
                         disabled={categorySubmitting}
-                        style={{ margin: 0, flex: 1 }}
                       />
-                      <button type="submit" className="btn-simpan" disabled={categorySubmitting} style={{ padding: "0 20px" }}>
+                      <button type="submit" className="btn-simpan dashboard-manage-cats-btn-add" disabled={categorySubmitting}>
                         {categorySubmitting ? "..." : editingCategory ? "Simpan" : "Tambah"}
                       </button>
                       {editingCategory && (
                         <button
                           type="button"
-                          className="btn-batal"
+                          className="btn-batal dashboard-manage-cats-btn-close"
                           onClick={() => {
                             setEditingCategory(null);
                             setCategoryName("");
                           }}
-                          style={{ padding: "0 15px", margin: 0 }}
                         >
                           Batal
                         </button>
@@ -1052,52 +1058,31 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                     </div>
                   </div>
 
-                  <hr style={{ margin: "20px 0", border: "0", borderTop: "1px solid #e2e8f0" }} />
+                  <hr className="dashboard-manage-cats-divider" />
 
-                  <div className="form-group" style={{ margin: 0 }}>
-                    <label style={{ fontWeight: 600, display: "block", marginBottom: "12px" }}>Daftar Kategori Kustom</label>
+                  <div className="form-group dashboard-manage-cats-list-container">
+                    <label className="dashboard-manage-cats-list-title">Daftar Kategori Kustom</label>
                     {categories.filter(cat => !cat.is_global).length === 0 ? (
-                      <p style={{ fontSize: "14px", color: "#64748b", fontStyle: "italic", textAlign: "center", margin: "10px 0" }}>Belum ada kategori kustom.</p>
+                      <p className="dashboard-manage-cats-empty">Belum ada kategori kustom.</p>
                     ) : (
-                      <div style={{ display: "flex", flexDirection: "column", gap: "8px", maxHeight: "180px", overflowY: "auto", paddingRight: "4px" }}>
+                      <div className="dashboard-manage-cats-list">
                         {categories.filter(cat => !cat.is_global).map((cat) => (
                           <div
                             key={cat.id_categories}
-                            style={{
-                              display: "flex",
-                              justifyContent: "space-between",
-                              alignItems: "center",
-                              padding: "10px 14px",
-                              background: "#f8fafc",
-                              borderRadius: "10px",
-                              border: "1px solid #e2e8f0",
-                              transition: "all 0.2s"
-                            }}
+                            className="dashboard-manage-cats-item"
                           >
-                            <span style={{ fontSize: "14px", fontWeight: 500, color: "#1e293b" }}>
+                            <span className="dashboard-manage-cats-item-name">
                               {cat.name.charAt(0).toUpperCase() + cat.name.slice(1)}
                             </span>
-                            <div style={{ display: "flex", gap: "4px" }}>
+                            <div className="dashboard-manage-cats-item-actions">
                               <button
                                 type="button"
                                 onClick={() => {
                                   setEditingCategory(cat);
                                   setCategoryName(cat.name);
                                 }}
-                                style={{
-                                  background: "none",
-                                  border: "none",
-                                  color: "#3b82f6",
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "4px",
-                                  borderRadius: "6px",
-                                  transition: "background 0.2s"
-                                }}
+                                className="dashboard-manage-cats-item-btn dashboard-manage-cats-item-btn-edit"
                                 title="Edit Kategori"
-                                onMouseEnter={(e) => e.currentTarget.style.background = "#dbeafe"}
-                                onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L6.832 19.82a4.5 4.5 0 01-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 011.13-1.897L16.863 4.487zm0 0L19.5 7.125" />
@@ -1106,20 +1091,8 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                               <button
                                 type="button"
                                 onClick={() => handleDeleteCategory(cat.id_categories)}
-                                style={{
-                                  background: "none",
-                                  border: "none",
-                                  color: "#ef4444",
-                                  cursor: "pointer",
-                                  display: "flex",
-                                  alignItems: "center",
-                                  padding: "4px",
-                                  borderRadius: "6px",
-                                  transition: "background 0.2s"
-                                }}
+                                className="dashboard-manage-cats-item-btn dashboard-manage-cats-item-btn-delete"
                                 title="Hapus Kategori"
-                                onMouseEnter={(e) => e.currentTarget.style.background = "#fee2e2"}
-                                onMouseLeave={(e) => e.currentTarget.style.background = "none"}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -1132,16 +1105,15 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                     )}
                   </div>
                 </div>
-                <div className="modal-footer" style={{ borderTop: "1px solid #e2e8f0", paddingTop: "15px", marginTop: "15px" }}>
+                <div className="modal-footer dashboard-manage-cats-footer">
                   <button
                     type="button"
-                    className="btn-batal"
+                    className="btn-batal dashboard-manage-cats-footer-btn"
                     onClick={() => {
                       setShowCategoryModal(false);
                       setCategoryName("");
                       setEditingCategory(null);
                     }}
-                    style={{ width: "100%", margin: 0 }}
                   >
                     Tutup
                   </button>
@@ -1155,62 +1127,52 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
           <div className="modal-overlay active" style={{ zIndex: 200 }}>
             <div className="modal-content" style={{ maxWidth: "420px" }}>
               <div className="modal-header">
-                <div className="modal-title" style={{ color: confirmModal.isDanger ? "#ef4444" : "#0f172a" }}>
+                <div className={`modal-title ${confirmModal.isDanger ? "dashboard-detail-item-full text-danger" : ""}`}>
                   {confirmModal.title}
                 </div>
                 <button
                   type="button"
-                  className="btn-close-modal"
+                  className="btn-close-modal dashboard-modal-close"
                   onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                  style={{
-                    background: "none",
-                    border: "none",
-                    fontSize: "24px",
-                    color: "#94a3b8",
-                    cursor: "pointer",
-                    transition: "color 0.2s"
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = "#475569"}
-                  onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
                 >
                   &times;
                 </button>
               </div>
               <div className="modal-body">
-                <p style={{ fontSize: "14px", color: "#475569", lineHeight: 1.6, margin: 0 }}>
+                <p className="dashboard-detail-desc">
                   {confirmModal.message}
                 </p>
               </div>
-              <div className="modal-footer" style={{ flexDirection: confirmModal.isCategoryDelete ? "column" : "row", gap: "10px", alignItems: "stretch", width: "100%" }}>
+              <div className="modal-footer dashboard-cat-del-footer">
                 {confirmModal.isCategoryDelete ? (
                   <>
                     <button
                       type="button"
-                      className="btn-hapus-modal"
+                      className="btn-hapus-modal dashboard-cat-del-btn-option"
                       onClick={() => {
                         if (confirmModal.onDeleteTasks) confirmModal.onDeleteTasks();
                         setConfirmModal({ ...confirmModal, show: false });
                       }}
-                      style={{ margin: 0, width: "100%", padding: "12px", justifyContent: "center" }}
                     >
-                      🗑️ Hapus Kategori & Seluruh Tugas
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ fill: "none" }}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                      Hapus Kategori & Seluruh Tugas
                     </button>
                     <button
                       type="button"
-                      className="btn-simpan"
+                      className="btn-simpan dashboard-cat-del-btn-cancel"
                       onClick={() => {
                         if (confirmModal.onKeepTasks) confirmModal.onKeepTasks();
                         setConfirmModal({ ...confirmModal, show: false });
                       }}
-                      style={{ margin: 0, width: "100%", padding: "12px", justifyContent: "center" }}
                     >
                       📂 Hapus Kategori Saja (Simpan Tugas)
                     </button>
                     <button
                       type="button"
-                      className="btn-batal"
+                      className="btn-batal dashboard-cat-del-btn-cancel"
                       onClick={() => setConfirmModal({ ...confirmModal, show: false })}
-                      style={{ margin: 0, width: "100%", padding: "12px", justifyContent: "center" }}
                     >
                       Batal
                     </button>
@@ -1235,8 +1197,13 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                         if (confirmModal.onConfirm) confirmModal.onConfirm();
                         setConfirmModal({ ...confirmModal, show: false });
                       }}
-                      style={{ margin: 0, padding: "10px 24px" }}
+                      style={{ margin: 0, padding: "10px 24px", display: "inline-flex", gap: "6px", alignItems: "center", justifyContent: "center" }}
                     >
+                      {confirmModal.isDanger && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ fill: "none" }}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
                       {confirmModal.confirmText}
                     </button>
                   </>

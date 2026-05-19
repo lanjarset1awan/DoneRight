@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import "../style/pages/UserReport.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -76,7 +77,7 @@ export default function UserReport({ token, onLogout, onNavigateDashboard }) {
       {/* NAVBAR */}
       <nav className="dashboard-navbar">
         <div className="navbar-brand">
-          <div className="logo-icon" style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)" }}>
+          <div className="logo-icon user-report-logo">
             <div className="logo-inner">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -105,33 +106,12 @@ export default function UserReport({ token, onLogout, onNavigateDashboard }) {
       </nav>
 
       {/* MAIN CONTAINER */}
-      <div className="dashboard-container" style={{ maxWidth: "760px" }}>
+      <div className="dashboard-container user-report-container">
         {/* BACK BUTTON */}
-        <div className="report-header-row" style={{ display: "flex", justifyContent: "space-between", marginBottom: "28px" }}>
+        <div className="report-header-row user-report-header">
           <button 
-            className="btn-secondary" 
+            className="btn-secondary user-report-btn-back" 
             onClick={onNavigateDashboard}
-            style={{ 
-              display: "inline-flex", 
-              alignItems: "center", 
-              gap: "8px", 
-              padding: "10px 16px",
-              background: "#ffffff",
-              border: "1px solid #e2e8f0",
-              borderRadius: "10px",
-              color: "#475569",
-              fontWeight: 600,
-              cursor: "pointer",
-              transition: "all 0.2s"
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = "#f8fafc";
-              e.currentTarget.style.borderColor = "#cbd5e1";
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = "#ffffff";
-              e.currentTarget.style.borderColor = "#e2e8f0";
-            }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -141,69 +121,36 @@ export default function UserReport({ token, onLogout, onNavigateDashboard }) {
         </div>
 
         {loading ? (
-          <div 
-            className="report-loading" 
-            style={{ 
-              textAlign: "center", 
-              padding: "60px 20px", 
-              color: "var(--text-muted)",
-              background: "#ffffff",
-              borderRadius: "16px",
-              border: "1px solid #f1f5f9",
-              boxShadow: "0 4px 6px -1px rgba(0,0,0,0.02)"
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="var(--primary-color)" strokeWidth={2.5} style={{ animation: "spin 1s linear infinite" }}>
+          <div className="report-loading user-report-loading-container">
+            <div className="user-report-loading-icon-wrapper">
+              <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="var(--primary-color)" strokeWidth={2.5} className="user-report-loading-spinner">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 7.89M9 11l3-3 3 3m-3-3v12" />
               </svg>
             </div>
-            <p style={{ fontWeight: 500, color: "#475569" }}>Menganalisis performa tugas Anda...</p>
+            <p className="user-report-loading-text">Menganalisis performa tugas Anda...</p>
           </div>
         ) : !stats ? (
-          <div 
-            className="report-loading" 
-            style={{ 
-              textAlign: "center", 
-              padding: "60px 20px", 
-              color: "#ef4444",
-              background: "#ffffff",
-              borderRadius: "16px",
-              border: "1px solid #fee2e2",
-              boxShadow: "0 4px 6px -1px rgba(239,68,68,0.05)"
-            }}
-          >
-            <div style={{ display: "flex", justifyContent: "center", marginBottom: "12px" }}>
+          <div className="report-loading user-report-error-container">
+            <div className="user-report-error-icon-wrapper">
               <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
               </svg>
             </div>
-            <p style={{ color: "#ef4444", fontWeight: 500 }}>Terjadi kesalahan saat memuat data laporan.</p>
+            <p className="user-report-error-text">Terjadi kesalahan saat memuat data laporan.</p>
           </div>
         ) : (
           <div className="report-content active">
             {/* BIG BANNER */}
-            <div 
-              className="big-productivity-card" 
-              style={{
-                background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)",
-                borderRadius: "16px",
-                padding: "28px",
-                color: "white",
-                boxShadow: "0 10px 25px -5px rgba(99, 102, 241, 0.4)",
-                marginBottom: "28px",
-                textAlign: "center"
-              }}
-            >
-              <div className="big-prod-label" style={{ fontSize: "14px", fontWeight: "600", textTransform: "uppercase", letterSpacing: "0.05em", opacity: 0.9 }}>Productivity Rate Anda</div>
-              <div className="big-prod-value" style={{ fontSize: "56px", fontWeight: "800", marginTop: "8px", lineHeight: 1 }}>{productivity}%</div>
-              <div className="progress-bar-container" style={{ backgroundColor: "rgba(255,255,255,0.2)", height: "10px", marginTop: "18px", borderRadius: "10px", overflow: "hidden" }}>
-                <div className="progress-bar-fill" style={{ backgroundColor: "white", width: `${productivity}%`, height: "100%", borderRadius: "10px", transition: "width 0.6s ease" }}></div>
+            <div className="big-productivity-card user-report-banner-card">
+              <div className="big-prod-label user-report-banner-label">Productivity Rate Anda</div>
+              <div className="big-prod-value user-report-banner-value">{productivity}%</div>
+              <div className="progress-bar-container user-report-progress-container">
+                <div className="progress-bar-fill user-report-progress-fill" style={{ width: `${productivity}%` }}></div>
               </div>
             </div>
 
             {/* STATS GRID */}
-            <div className="admin-stats-grid" style={{ marginBottom: "28px" }}>
+            <div className="admin-stats-grid user-report-stats-grid">
               <div className="admin-stat-card">
                 <div className="admin-stat-left">
                   <span className="admin-stat-label">Total Tugas</span>
@@ -258,49 +205,19 @@ export default function UserReport({ token, onLogout, onNavigateDashboard }) {
             </div>
 
             {/* ACTION CARD */}
-            <div 
-              className="report-action-card" 
-              style={{
-                backgroundColor: "#ffffff",
-                borderRadius: "16px",
-                border: "1px solid var(--border-color)",
-                padding: "28px",
-                boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.01)"
-              }}
-            >
-              <h3 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-main)", marginBottom: "8px", display: "flex", alignItems: "center", gap: "8px" }}>
+            <div className="report-action-card user-report-action-card">
+              <h3 className="user-report-action-title">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--primary-color)" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
                 Unduh Laporan Format PDF
               </h3>
-              <p style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "20px", lineHeight: 1.6 }}>
+              <p className="user-report-action-desc">
                 Dapatkan dokumen PDF resmi yang memuat rincian statistik tugas, kategori, dan timeline performa produktivitas Anda.
               </p>
               <button
-                className="btn-primary"
+                className="btn-primary user-report-btn-download"
                 onClick={handleDownloadPDF}
-                style={{ 
-                  backgroundColor: "#00a854", 
-                  borderColor: "#00a854", 
-                  width: "100%", 
-                  padding: "12px", 
-                  fontSize: "16px", 
-                  fontWeight: "600",
-                  display: "inline-flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  borderRadius: "10px",
-                  cursor: "pointer",
-                  transition: "all 0.2s"
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = "#008f47";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = "#00a854";
-                }}
                 disabled={downloading}
               >
                 {downloading ? (

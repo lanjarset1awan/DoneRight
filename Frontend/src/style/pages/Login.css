@@ -1,0 +1,29 @@
+.auth-error-msg {
+    color: #ef4444;
+    font-size: 14px;
+    margin-bottom: 16px;
+    font-weight: 500;
+}
+
+.auth-submit-btn {
+    width: 100%;
+    justify-content: center;
+    background: #4f46e5;
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin-top: 8px;
+    display: inline-flex;
+    align-items: center;
+}
+
+.auth-submit-btn:hover {
+    background: #4338ca;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.2);
+}
+
