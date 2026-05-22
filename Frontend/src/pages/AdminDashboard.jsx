@@ -5,7 +5,7 @@ import "../style/pages/AdminDashboard.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function AdminDashboard({ token, user, onLogout, onNavigateReport, onNavigateProfile }) {
+export default function AdminDashboard({ token, user, onLogout, onNavigateReport, onOpenProfile }) {
   // State
   const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState(null);
@@ -447,7 +447,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
         title="DoneRight Admin"
         subtitle="Admin DoneRight"
         user={user}
-        onNavigateProfile={onNavigateProfile}
+        onOpenProfile={onOpenProfile}
         onNavigateReport={onNavigateReport}
         onLogout={onLogout}
       />
@@ -630,6 +630,12 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                     {loadingUsersStats && usersStats.length === 0 ? (
                       <tr>
                         <td colSpan="9" className="admin-dash-empty-td">
+                          <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
+                            <svg className="loading-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </div>
                           Memuat data produktivitas...
                         </td>
                       </tr>
@@ -765,6 +771,12 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
               <div className="category-cards-grid">
                 {loading && categories.length === 0 ? (
                   <div className="empty-state admin-dash-empty-state-full">
+                    <div className="empty-state-icon" style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                      <svg className="loading-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    </div>
                     <p>Memuat kategori...</p>
                   </div>
                 ) : categories.length === 0 ? (
@@ -885,6 +897,12 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                     {loadingUsersList && usersList.length === 0 ? (
                       <tr>
                         <td colSpan="7" className="admin-dash-empty-td">
+                          <div style={{ display: "flex", justifyContent: "center", marginBottom: "8px" }}>
+                            <svg className="loading-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                          </div>
                           Memuat data user...
                         </td>
                       </tr>

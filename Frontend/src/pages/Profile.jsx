@@ -3,7 +3,7 @@ import "../style/pages/Profile.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function Profile({ token, user, onUserUpdate, onLogout, onNavigateBack }) {
+export default function Profile({ token, user, onUserUpdate, onLogout, onClose }) {
   // Navigation states
   const [isEditing, setIsEditing] = useState(false);
 
@@ -25,7 +25,14 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
   // UI States
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
-  const [successMsg, setSuccessMsg] = useState("");
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 4000);
+  };
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const fileInputRef = useRef(null);
@@ -91,7 +98,6 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
 
     setLoading(true);
     setErrorMsg("");
-    setSuccessMsg("");
 
     try {
       const response = await fetch(`${BASE_URL}/users/profile`, {
@@ -124,13 +130,10 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
       // Update parent state & localStorage user
       onUserUpdate(data, newPassword || null);
 
-      setSuccessMsg("Profil berhasil diperbarui!");
+      showToast("Profil berhasil diperbarui!", "success");
       setIsEditing(false);
       setNewPassword("");
       setConfirmPassword("");
-      
-      // Auto clear success message after 4s
-      setTimeout(() => setSuccessMsg(""), 4000);
     } catch (err) {
       console.error("Update profile error:", err);
       setErrorMsg(err.message || "Terjadi kesalahan saat memperbarui profil.");
@@ -181,16 +184,6 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
     <div className="profile-body">
       <div className="profile-container">
         
-        {/* BACK HEADER */}
-        <div className="profile-back-header">
-          <button className="profile-back-btn" onClick={onNavigateBack}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-            Kembali ke Beranda
-          </button>
-        </div>
-
         {/* ALERTS */}
         {errorMsg && (
           <div className="profile-error-alert">
@@ -198,14 +191,11 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
           </div>
         )}
 
-        {successMsg && (
-          <div className="profile-success-alert">
-            <span>✓ {successMsg}</span>
-          </div>
-        )}
-
         {/* MAIN PROFILE CARD */}
         <div className="profile-card">
+          <button className="profile-close-btn" onClick={onClose} aria-label="Close Profile">
+             &times;
+          </button>
           
           <h2 style={{ textAlign: "center", marginBottom: "24px", color: "#0f172a", fontSize: "24px", fontWeight: "700" }}>
             {isEditing ? "Edit Profil Saya" : "Profil Saya"}
@@ -309,8 +299,9 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
 
               {/* ACTION BUTTONS */}
               <button 
-                className="profile-action-btn profile-btn-primary" 
+                className="btn-edit-modal" 
                 onClick={() => setIsEditing(true)}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "12px" }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
@@ -319,9 +310,13 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
               </button>
 
               <button 
-                className="profile-action-btn profile-btn-danger-light" 
+                className="btn-hapus-modal" 
                 onClick={() => setShowDeleteConfirm(true)}
+                style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: "8px", width: "100%", padding: "12px", margin: "12px 0 0 0" }}
               >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
                 Hapus Akun
               </button>
             </div>
@@ -424,6 +419,7 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
                 type="submit" 
                 className="profile-action-btn profile-btn-save" 
                 disabled={loading}
+                style={{ width: "100%", padding: "12px" }}
               >
                 {loading ? "Menyimpan..." : "SIMPAN PERUBAHAN"}
               </button>
@@ -433,6 +429,7 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
                 className="profile-action-btn profile-btn-cancel" 
                 onClick={handleCancelEdit}
                 disabled={loading}
+                style={{ width: "100%", padding: "12px", marginTop: "12px" }}
               >
                 Batal
               </button>
@@ -491,6 +488,10 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onNavigat
         </div>
       )}
 
+      {/* TOAST NOTIFICATION */}
+      <div className={`toast-notification ${toast.show ? "active" : ""} ${toast.type}`}>
+        <div className="toast-message">{toast.message}</div>
+      </div>
     </div>
   );
 }

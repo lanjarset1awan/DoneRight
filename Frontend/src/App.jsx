@@ -25,6 +25,8 @@ export default function App() {
     return params.get("resetToken") || "";
   });
 
+  const [showProfileModal, setShowProfileModal] = useState(false);
+
   const [currentPage, setCurrentPage] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("resetToken")) {
@@ -135,7 +137,7 @@ export default function App() {
             onLogout={handleLogout}
             onNavigateReport={() => setCurrentPage("report-user")}
             onNavigateTrash={() => setCurrentPage("trash")}
-            onNavigateProfile={() => setCurrentPage("profile")}
+            onOpenProfile={() => setShowProfileModal(true)}
           />
         );
       case "trash":
@@ -145,7 +147,7 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateDashboard={() => setCurrentPage("dashboard")}
-            onNavigateProfile={() => setCurrentPage("profile")}
+            onOpenProfile={() => setShowProfileModal(true)}
           />
         );
       case "admin":
@@ -155,29 +157,10 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateReport={() => setCurrentPage("report-admin")}
-            onNavigateProfile={() => setCurrentPage("profile")}
+            onOpenProfile={() => setShowProfileModal(true)}
           />
         );
-      case "profile":
-        return (
-          <Profile
-            token={token}
-            user={user}
-            onUserUpdate={(updatedUser, newPassword = "") => {
-              const mergedUser = { ...user, ...updatedUser };
-              if (newPassword) {
-                mergedUser.plaintextPassword = newPassword;
-              }
-              if (updatedUser.avatar) {
-                const baseUrl = updatedUser.avatar.split('?')[0];
-                mergedUser.avatar = `${baseUrl}?t=${new Date().getTime()}`;
-              }
-              setUser(mergedUser);
-            }}
-            onLogout={handleLogout}
-            onNavigateBack={() => setCurrentPage(user && user.role === "admin" ? "admin" : "dashboard")}
-          />
-        );
+
       case "report-user":
         return (
           <UserReport
@@ -185,7 +168,7 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateDashboard={() => setCurrentPage("dashboard")}
-            onNavigateProfile={() => setCurrentPage("profile")}
+            onOpenProfile={() => setShowProfileModal(true)}
           />
         );
       case "report-admin":
@@ -195,7 +178,7 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateDashboard={() => setCurrentPage("admin")}
-            onNavigateProfile={() => setCurrentPage("profile")}
+            onOpenProfile={() => setShowProfileModal(true)}
           />
         );
       default:
@@ -209,5 +192,29 @@ export default function App() {
     }
   };
 
-  return <div className="app-root-container">{renderPage()}</div>;
+  return (
+    <div className="app-root-container">
+      {renderPage()}
+      
+      {showProfileModal && (
+        <Profile
+          token={token}
+          user={user}
+          onUserUpdate={(updatedUser, newPassword = "") => {
+            const mergedUser = { ...user, ...updatedUser };
+            if (newPassword) {
+              mergedUser.plaintextPassword = newPassword;
+            }
+            if (updatedUser.avatar) {
+              const baseUrl = updatedUser.avatar.split('?')[0];
+              mergedUser.avatar = `${baseUrl}?t=${new Date().getTime()}`;
+            }
+            setUser(mergedUser);
+          }}
+          onLogout={handleLogout}
+          onClose={() => setShowProfileModal(false)}
+        />
+      )}
+    </div>
+  );
 }

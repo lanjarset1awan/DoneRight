@@ -300,12 +300,12 @@
 }
 
 .dashboard-manage-cats-item-btn-edit {
-    background-color: #e0f2fe;
-    color: #0284c7;
+    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+    color: white;
 }
 
 .dashboard-manage-cats-item-btn-edit:hover {
-    background-color: #bae6fd;
+    background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
 }
 
 .dashboard-manage-cats-item-btn-delete {

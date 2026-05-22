@@ -1,24 +1,83 @@
+import { useState, useEffect, useRef } from "react";
+
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
 export default function Navbar({
+  token,
   title = "DoneRight",
   subtitle,
   user,
-  onNavigateProfile,
+  onOpenProfile,
   onNavigateReport,
   onLogout,
   // Notification props
   showNotifBell = false,
-  unreadCount = 0,
-  showNotifDropdown = false,
-  setShowNotifDropdown,
-  notifications = [],
   tasks = [],
   setSelectedTask,
   setShowDetailModal,
-  handleReadAllNotifs,
-  handleReadNotif,
-  notifDropdownRef,
 }) {
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const notifDropdownRef = useRef(null);
+
+  const fetchNotifications = async () => {
+    if (!token || !showNotifBell) return;
+    try {
+      const res = await fetch(`${BASE_URL}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(data);
+      }
+    } catch (err) {
+      console.error("Notifications fetch error:", err);
+    }
+  };
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchNotifications();
+
+    function handleClickOutside(event) {
+      if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
+        setShowNotifDropdown(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token, showNotifBell]);
+
+  const handleReadNotif = async (id) => {
+    try {
+      const res = await fetch(`${BASE_URL}/notifications/${id}/read`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => n.id_notifications === id ? { ...n, is_read: true } : n));
+      }
+    } catch (err) {
+      console.error("Read notification error:", err);
+    }
+  };
+
+  const handleReadAllNotifs = async () => {
+    try {
+      const res = await fetch(`${BASE_URL}/notifications/read-all`, {
+        method: "PATCH",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      }
+    } catch (err) {
+      console.error("Read all notifications error:", err);
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
   const formatTimeAgo = (dateStr) => {
     const now = new Date();
     const date = new Date(dateStr);
@@ -119,7 +178,7 @@ export default function Navbar({
                         key={notif.id_notifications} 
                         className={`notif-item ${!notif.is_read ? "unread" : ""}`}
                         onClick={() => {
-                          if (notif.task_id) {
+                          if (notif.task_id && setShowDetailModal && setSelectedTask) {
                             const foundTask = tasks.find(t => t.id_tasks === notif.task_id);
                             if (foundTask) {
                               setSelectedTask(foundTask);
@@ -171,11 +230,11 @@ export default function Navbar({
         )}
 
         {/* Profil Button */}
-        {onNavigateProfile && (
+        {onOpenProfile && (
           <button 
             className="btn-secondary" 
             style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 12px" }} 
-            onClick={onNavigateProfile}
+            onClick={onOpenProfile}
             type="button"
           >
             {user && user.avatar ? (

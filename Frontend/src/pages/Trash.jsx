@@ -4,7 +4,7 @@ import "../style/pages/Trash.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function Trash({ token, user, onLogout, onNavigateDashboard, onNavigateProfile }) {
+export default function Trash({ token, user, onLogout, onNavigateDashboard, onOpenProfile }) {
   const [trashTasks, setTrashTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -18,6 +18,15 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
     cancelText: "Batal",
     isDanger: true
   });
+
+  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
+
+  const showToast = (message, type = "success") => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast({ show: false, message: "", type: "success" });
+    }, 3000);
+  };
 
   const fetchTrash = async () => {
     setLoading(true);
@@ -45,12 +54,13 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
   const executeRestore = async (id) => {
     setProcessing(true);
     try {
-      const res = await fetch(`${BASE_URL}/tasks/${id}/restore`, {
+      const res = await fetch(`${BASE_URL}/tasks/restore/${id}`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setTrashTasks(prev => prev.filter(t => t.id_tasks !== id));
+        showToast("Tugas berhasil dipulihkan", "success");
       }
     } catch (err) {
       console.error("Restore error:", err);
@@ -76,12 +86,13 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
   const executeDeletePermanent = async (id) => {
     setProcessing(true);
     try {
-      const res = await fetch(`${BASE_URL}/tasks/${id}/permanent`, {
+      const res = await fetch(`${BASE_URL}/tasks/permanent/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
         setTrashTasks(prev => prev.filter(t => t.id_tasks !== id));
+        showToast("Tugas berhasil dihapus permanen", "success");
       }
     } catch (err) {
       console.error("Permanent delete error:", err);
@@ -116,10 +127,12 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
         )
       );
       await fetchTrash();
+      showToast("Semua tugas berhasil dipulihkan", "success");
     } catch (err) {
       console.error("Restore all error:", err);
     } finally {
       setProcessing(false);
+      setConfirmModal(prev => ({ ...prev, show: false }));
     }
   };
 
@@ -151,10 +164,12 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
         )
       );
       await fetchTrash();
+      showToast("Keranjang sampah berhasil dikosongkan", "success");
     } catch (err) {
       console.error("Clear all error:", err);
     } finally {
       setProcessing(false);
+      setConfirmModal(prev => ({ ...prev, show: false }));
     }
   };
 
@@ -180,7 +195,9 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
         title="DoneRight"
         subtitle="Keranjang Sampah & Restorasi"
         user={user}
-        onNavigateProfile={onNavigateProfile}
+        token={token}
+        showNotifBell={true}
+        onOpenProfile={onOpenProfile}
         onLogout={onLogout}
       />
 
@@ -239,7 +256,12 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
           <div>
             {loading ? (
               <div className="empty-state">
-                <div className="empty-state-icon">🗑️</div>
+                <div className="empty-state-icon" style={{ display: "flex", justifyContent: "center", marginBottom: "16px" }}>
+                  <svg className="loading-spinner" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
                 <p>Memuat keranjang sampah...</p>
               </div>
             ) : trashTasks.length === 0 ? (
@@ -365,6 +387,10 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onNa
         </div>
       )}
     </div>
-  </div>
-);
+      {/* TOAST NOTIFICATION */}
+      <div className={`toast-notification ${toast.show ? "active" : ""} ${toast.type}`}>
+        <div className="toast-message">{toast.message}</div>
+      </div>
+    </div>
+  );
 }
