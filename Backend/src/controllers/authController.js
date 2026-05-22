@@ -162,7 +162,8 @@ export const forgotPassword = async (req, res) => {
             [hashedToken, expires, user.id_users]
         );
 
-        const resetUrl = `http://localhost:5173/?resetToken=${resetToken}`;
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        const resetUrl = `${frontendUrl}/?resetToken=${resetToken}`;
 
         console.log("=========================================");
         console.log("PASSWORD RESET REQUEST");
