@@ -56,7 +56,7 @@ export const findUserByEmail =
 // GET USER BY ID
 export const getUserById = async (id) => {
     const query = `
-        SELECT id_users, username, email, role, created_at
+        SELECT id_users, username, email, role, created_at, avatar
         FROM users
         WHERE id_users = $1
     `;
@@ -72,15 +72,17 @@ export const updateUser = async (id, data) => {
         SET
             username = COALESCE($1, username),
             email = COALESCE($2, email),
-            password_hash = COALESCE($3, password_hash)
-        WHERE id_users = $4
-        RETURNING id_users, username, email
+            password_hash = COALESCE($3, password_hash),
+            avatar = COALESCE($4, avatar)
+        WHERE id_users = $5
+        RETURNING id_users, username, email, role, created_at, avatar
     `;
 
     const result = await pool.query(query, [
         data.username,
         data.email,
         data.password_hash,
+        data.avatar,
         id
     ]);
 

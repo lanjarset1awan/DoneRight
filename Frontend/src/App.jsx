@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import LandingPage from "./pages/LandingPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -6,6 +7,9 @@ import AdminDashboard from "./pages/AdminDashboard";
 import UserReport from "./pages/UserReport";
 import AdminReport from "./pages/AdminReport";
 import Trash from "./pages/Trash";
+import Profile from "./pages/Profile";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 export default function App() {
   const [token, setToken] = useState(localStorage.getItem("token") || "");
@@ -16,10 +20,18 @@ export default function App() {
       return null;
     }
   });
+  const [resetToken] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("resetToken") || "";
+  });
 
   const [currentPage, setCurrentPage] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("resetToken")) {
+      return "reset-password";
+    }
     const savedToken = localStorage.getItem("token");
-    if (!savedToken) return "login";
+    if (!savedToken) return "landing";
     try {
       const savedUser = JSON.parse(localStorage.getItem("user"));
       if (savedUser && savedUser.role === "admin") {
@@ -27,9 +39,18 @@ export default function App() {
       }
       return "dashboard";
     } catch {
-      return "login";
+      return "landing";
     }
   });
+
+  // Clean up URL query parameters on mount if resetToken was present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("resetToken")) {
+      const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
+      window.history.replaceState({ path: newUrl }, "", newUrl);
+    }
+  }, []);
 
   // Sync state to localStorage
   useEffect(() => {
@@ -48,9 +69,13 @@ export default function App() {
     }
   }, [user]);
 
-  const handleLoginSuccess = (userToken, userData) => {
+  const handleLoginSuccess = (userToken, userData, enteredPassword = "") => {
     setToken(userToken);
-    setUser(userData);
+    const mergedUser = { ...userData };
+    if (enteredPassword) {
+      mergedUser.plaintextPassword = enteredPassword;
+    }
+    setUser(mergedUser);
     if (userData.role === "admin") {
       setCurrentPage("admin");
     } else {
@@ -62,17 +87,38 @@ export default function App() {
     setToken("");
     setUser(null);
     localStorage.clear();
-    setCurrentPage("login");
+    setCurrentPage("landing");
   };
 
   // State Router
   const renderPage = () => {
     switch (currentPage) {
+      case "landing":
+        return (
+          <LandingPage
+            onNavigateLogin={() => setCurrentPage("login")}
+            onNavigateRegister={() => setCurrentPage("register")}
+          />
+        );
       case "login":
         return (
           <Login
             onLoginSuccess={handleLoginSuccess}
             onNavigateRegister={() => setCurrentPage("register")}
+            onNavigateForgotPassword={() => setCurrentPage("forgot-password")}
+          />
+        );
+      case "forgot-password":
+        return (
+          <ForgotPassword
+            onNavigateLogin={() => setCurrentPage("login")}
+          />
+        );
+      case "reset-password":
+        return (
+          <ResetPassword
+            resetToken={resetToken}
+            onNavigateLogin={() => setCurrentPage("login")}
           />
         );
       case "register":
@@ -89,6 +135,7 @@ export default function App() {
             onLogout={handleLogout}
             onNavigateReport={() => setCurrentPage("report-user")}
             onNavigateTrash={() => setCurrentPage("trash")}
+            onNavigateProfile={() => setCurrentPage("profile")}
           />
         );
       case "trash":
@@ -106,6 +153,27 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateReport={() => setCurrentPage("report-admin")}
+            onNavigateProfile={() => setCurrentPage("profile")}
+          />
+        );
+      case "profile":
+        return (
+          <Profile
+            token={token}
+            user={user}
+            onUserUpdate={(updatedUser, newPassword = "") => {
+              const mergedUser = { ...user, ...updatedUser };
+              if (newPassword) {
+                mergedUser.plaintextPassword = newPassword;
+              }
+              if (updatedUser.avatar) {
+                const baseUrl = updatedUser.avatar.split('?')[0];
+                mergedUser.avatar = `${baseUrl}?t=${new Date().getTime()}`;
+              }
+              setUser(mergedUser);
+            }}
+            onLogout={handleLogout}
+            onNavigateBack={() => setCurrentPage(user && user.role === "admin" ? "admin" : "dashboard")}
           />
         );
       case "report-user":
@@ -131,6 +199,7 @@ export default function App() {
           <Login
             onLoginSuccess={handleLoginSuccess}
             onNavigateRegister={() => setCurrentPage("register")}
+            onNavigateForgotPassword={() => setCurrentPage("forgot-password")}
           />
         );
     }

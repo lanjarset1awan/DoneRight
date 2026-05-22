@@ -152,3 +152,38 @@ export const updateGlobalCategory = async (categoryId, name) => {
     const result = await pool.query(query, [name, categoryId]);
     return result.rows[0];
 };
+
+// GET ALL USERS FOR ADMIN
+export const getAllUsers = async () => {
+    const query = `
+        SELECT id_users, username, email, role, created_at, deleted_at, avatar
+        FROM users
+        ORDER BY id_users ASC
+    `;
+    const result = await pool.query(query);
+    return result.rows;
+};
+
+// SOFT DELETE USER
+export const softDeleteUser = async (userId) => {
+    const query = `
+        UPDATE users
+        SET deleted_at = NOW()
+        WHERE id_users = $1
+        RETURNING id_users, username, email, role, deleted_at
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+};
+
+// RESTORE USER
+export const restoreUser = async (userId) => {
+    const query = `
+        UPDATE users
+        SET deleted_at = NULL
+        WHERE id_users = $1
+        RETURNING id_users, username, email, role, deleted_at
+    `;
+    const result = await pool.query(query, [userId]);
+    return result.rows[0];
+};

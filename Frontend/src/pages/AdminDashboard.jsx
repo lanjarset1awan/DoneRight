@@ -4,7 +4,7 @@ import "../style/pages/AdminDashboard.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function AdminDashboard({ token, user, onLogout, onNavigateReport }) {
+export default function AdminDashboard({ token, user, onLogout, onNavigateReport, onNavigateProfile }) {
   // State
   const [activeTab, setActiveTab] = useState("overview");
   const [stats, setStats] = useState(null);
@@ -12,6 +12,17 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
   const [overdueTasks, setOverdueTasks] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [usersStats, setUsersStats] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [loadingUsersStats, setLoadingUsersStats] = useState(false);
+  const [downloadingPdf, setDownloadingPdf] = useState({});
+  const [usersList, setUsersList] = useState([]);
+  const [loadingUsersList, setLoadingUsersList] = useState(false);
+  const [usersCurrentPage, setUsersCurrentPage] = useState(1);
+  const [searchProd, setSearchProd] = useState("");
+  const [sortByProd, setSortByProd] = useState("");
+  const [searchUser, setSearchUser] = useState("");
+  const [sortByUser, setSortByUser] = useState("");
 
   // Modals
   const [showCategoryModal, setShowCategoryModal] = useState(false);
@@ -117,9 +128,121 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
     }
   };
 
+  const fetchUsersStats = async () => {
+    setLoadingUsersStats(true);
+    try {
+      const res = await fetch(`${BASE_URL}/statistics/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsersStats(data);
+      }
+    } catch (err) {
+      console.error("Users productivity statistics load error:", err);
+    } finally {
+      setLoadingUsersStats(false);
+    }
+  };
+
+  const handleDownloadUserPDF = async (userId, username) => {
+    setDownloadingPdf((prev) => ({ ...prev, [userId]: true }));
+    try {
+      const res = await fetch(`${BASE_URL}/statistics/pdf/user/${userId}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Gagal mengunduh laporan.");
+
+      const blob = await res.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Laporan_Productivity_${username}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      showToast(`Laporan PDF ${username} berhasil diunduh!`, "success");
+    } catch (err) {
+      console.error("User PDF download error:", err);
+      showToast(`Gagal mengunduh laporan PDF ${username}.`, "error");
+    } finally {
+      setDownloadingPdf((prev) => ({ ...prev, [userId]: false }));
+    }
+  };
+
+  const fetchUsersList = async () => {
+    setLoadingUsersList(true);
+    try {
+      const res = await fetch(`${BASE_URL}/admin/users`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUsersList(data);
+      }
+    } catch (err) {
+      console.error("Users list load error:", err);
+    } finally {
+      setLoadingUsersList(false);
+    }
+  };
+
+  const handleSoftDeleteUser = (userId, username) => {
+    setConfirmModal({
+      show: true,
+      title: "Nonaktifkan Akun User",
+      message: `Apakah Anda yakin ingin menonaktifkan akun user "${username}"? User ini tidak akan dapat login ke sistem.`,
+      confirmText: "Ya, Nonaktifkan",
+      cancelText: "Batal",
+      isDanger: true,
+      onConfirm: async () => {
+        try {
+          const res = await fetch(`${BASE_URL}/admin/users/${userId}/soft-delete`, {
+            method: "POST",
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            showToast(`Akun user ${username} berhasil dinonaktifkan!`, "success");
+            fetchUsersList();
+            fetchOverviewData();
+            fetchUsersStats();
+          } else {
+            throw new Error();
+          }
+        } catch (err) {
+          console.error("Soft delete user error:", err);
+          showToast(`Gagal menonaktifkan akun user ${username}.`, "error");
+        }
+      },
+      onCancel: () => {}
+    });
+  };
+
+  const handleRestoreUser = async (userId, username) => {
+    try {
+      const res = await fetch(`${BASE_URL}/admin/users/${userId}/restore`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        showToast(`Akun user ${username} berhasil dipulihkan!`, "success");
+        fetchUsersList();
+        fetchOverviewData();
+        fetchUsersStats();
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      console.error("Restore user error:", err);
+      showToast(`Gagal memulihkan akun user ${username}.`, "error");
+    }
+  };
+
   // Load overview data automatically
   useEffect(() => {
     fetchOverviewData();
+    fetchUsersStats();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -127,12 +250,11 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
   useEffect(() => {
     if (activeTab === "overview") {
       fetchOverviewData();
-    } else if (activeTab === "all-tasks") {
-      fetchAllTasks();
-    } else if (activeTab === "overdue-tasks") {
-      fetchOverdueTasks();
+      fetchUsersStats();
     } else if (activeTab === "categories") {
       fetchCategories();
+    } else if (activeTab === "users") {
+      fetchUsersList();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
@@ -239,6 +361,84 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
   const mediumPercent = totalTasksCount > 0 ? (mediumCount / totalTasksCount) * 100 : 0;
   const lowPercent = totalTasksCount > 0 ? (lowCount / totalTasksCount) * 100 : 0;
 
+  // Reset page when search or sorting changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchProd, sortByProd]);
+
+  // Filter & sort productivity users
+  const filteredAndSortedUsersStats = React.useMemo(() => {
+    let result = [...usersStats];
+
+    if (searchProd.trim() !== "") {
+      const query = searchProd.toLowerCase();
+      result = result.filter(
+        (u) =>
+          (u.username && u.username.toLowerCase().includes(query)) ||
+          (u.email && u.email.toLowerCase().includes(query))
+      );
+    }
+
+    if (sortByProd === "overdue-desc") {
+      result.sort((a, b) => (Number(b.overdue) || 0) - (Number(a.overdue) || 0));
+    } else if (sortByProd === "prod-asc") {
+      result.sort((a, b) => (Number(a.productivity) || 0) - (Number(b.productivity) || 0));
+    } else if (sortByProd === "prod-desc") {
+      result.sort((a, b) => (Number(b.productivity) || 0) - (Number(a.productivity) || 0));
+    } else if (sortByProd === "name-asc") {
+      result.sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+    }
+
+    return result;
+  }, [usersStats, searchProd, sortByProd]);
+
+  const itemsPerPage = 7;
+  const indexOfLastRow = currentPage * itemsPerPage;
+  const indexOfFirstRow = indexOfLastRow - itemsPerPage;
+  const currentRows = filteredAndSortedUsersStats.slice(indexOfFirstRow, indexOfLastRow);
+  const totalPages = Math.ceil(filteredAndSortedUsersStats.length / itemsPerPage);
+
+  // Reset user page when search or sorting changes
+  useEffect(() => {
+    setUsersCurrentPage(1);
+  }, [searchUser, sortByUser]);
+
+  // Filter & sort users list
+  const filteredAndSortedUsersList = React.useMemo(() => {
+    let result = [...usersList];
+
+    if (searchUser.trim() !== "") {
+      const query = searchUser.toLowerCase();
+      result = result.filter(
+        (u) =>
+          (u.username && u.username.toLowerCase().includes(query)) ||
+          (u.email && u.email.toLowerCase().includes(query))
+      );
+    }
+
+    if (sortByUser === "name-asc") {
+      result.sort((a, b) => (a.username || "").localeCompare(b.username || ""));
+    } else if (sortByUser === "name-desc") {
+      result.sort((a, b) => (b.username || "").localeCompare(a.username || ""));
+    } else if (sortByUser === "status-active") {
+      result.sort((a, b) => {
+        const aActive = !a.deleted_at;
+        const bActive = !b.deleted_at;
+        if (aActive === bActive) return 0;
+        return aActive ? -1 : 1;
+      });
+    } else if (sortByUser === "status-inactive") {
+      result.sort((a, b) => {
+        const aActive = !a.deleted_at;
+        const bActive = !b.deleted_at;
+        if (aActive === bActive) return 0;
+        return aActive ? 1 : -1;
+      });
+    }
+
+    return result;
+  }, [usersList, searchUser, sortByUser]);
+
   return (
     <div>
       {/* NAVBAR */}
@@ -277,6 +477,20 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
             </svg>
             Laporan
           </button>
+          <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 12px" }} onClick={onNavigateProfile}>
+            {user && user.avatar ? (
+              <img 
+                src={user.avatar} 
+                alt="Avatar" 
+                style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }} 
+              />
+            ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            )}
+            Profil
+          </button>
           <button className="btn-logout" onClick={onLogout}>
             Logout
           </button>
@@ -295,23 +509,16 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
               Overview
             </button>
             <button
-              className={`admin-tab-btn ${activeTab === "all-tasks" ? "active" : ""}`}
-              onClick={() => setActiveTab("all-tasks")}
-            >
-              Semua Tugas
-            </button>
-            <button
-              className={`admin-tab-btn ${activeTab === "overdue-tasks" ? "active" : ""}`}
-              onClick={() => setActiveTab("overdue-tasks")}
-            >
-              Tugas Overdue{" "}
-              {overdueCount > 0 && <span className="admin-tab-badge">{overdueCount}</span>}
-            </button>
-            <button
               className={`admin-tab-btn ${activeTab === "categories" ? "active" : ""}`}
               onClick={() => setActiveTab("categories")}
             >
               Kelola Kategori
+            </button>
+            <button
+              className={`admin-tab-btn ${activeTab === "users" ? "active" : ""}`}
+              onClick={() => setActiveTab("users")}
+            >
+              Kelola Akun User
             </button>
           </div>
         </div>
@@ -409,72 +616,133 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                 </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {/* TAB PANEL: SEMUA TUGAS */}
-        {activeTab === "all-tasks" && (
-          <div className="tab-panel active">
-            <div className="board-card">
-              <div className="board-title admin-dash-board-title">
-                Monitoring Seluruh Tugas
+            {/* USER PRODUCTIVITY TABLE */}
+            <div className="board-card" style={{ marginTop: "24px" }}>
+              <div className="board-title" style={{ marginBottom: "16px" }}>User Productivity Table</div>
+              
+              {/* FILTERS FOR USER PRODUCTIVITY */}
+              <div className="prod-table-filters">
+                <div className="search-input-wrapper">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor" 
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Cari user berdasarkan username atau email..."
+                    value={searchProd}
+                    onChange={(e) => setSearchProd(e.target.value)}
+                  />
+                </div>
+
+                <CustomSelect
+                  value={sortByProd}
+                  onChange={setSortByProd}
+                  options={[
+                    { value: "", label: "Urutkan: Default" },
+                    { value: "name-asc", label: "Urutkan: Nama A-Z" },
+                    { value: "overdue-desc", label: "Urutkan: Overdue Terbanyak" },
+                    { value: "prod-asc", label: "Urutkan: Produktivitas Terendah" },
+                    { value: "prod-desc", label: "Urutkan: Produktivitas Tertinggi" }
+                  ]}
+                  placeholder="Urutkan"
+                />
               </div>
+
               <div className="admin-table-container">
                 <table className="admin-table">
                   <thead>
                     <tr>
-                      <th>Judul</th>
-                      <th>Prioritas</th>
-                      <th>Status</th>
-                      <th>Deadline</th>
+                      <th style={{ width: "60px" }}>No</th>
+                      <th>Username</th>
+                      <th>Email</th>
+                      <th>Total Task</th>
+                      <th>Pending</th>
+                      <th>On Time</th>
+                      <th>Overdue</th>
+                      <th>Productivity</th>
+                      <th style={{ width: "100px", textAlign: "center" }}>Action</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {loading && allTasks.length === 0 ? (
+                    {loadingUsersStats && usersStats.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="admin-dash-empty-td">
-                          Memuat tugas...
+                        <td colSpan="9" className="admin-dash-empty-td">
+                          Memuat data produktivitas...
                         </td>
                       </tr>
-                    ) : allTasks.length === 0 ? (
+                    ) : filteredAndSortedUsersStats.length === 0 ? (
                       <tr>
-                        <td colSpan="4" className="admin-dash-empty-td">
-                          Tidak ada tugas terdaftar.
+                        <td colSpan="9" className="admin-dash-empty-td">
+                          {usersStats.length === 0 ? "Tidak ada data pengguna." : "Tidak ada data pengguna sesuai kriteria filter."}
                         </td>
                       </tr>
                     ) : (
-                      allTasks.map((task) => {
-                        const now = new Date();
-                        const deadline = task.deadline ? new Date(task.deadline) : null;
-                        const completedAt = task.completed_at ? new Date(task.completed_at) : null;
-                        const isOverdue = deadline && (
-                          (!task.is_completed && deadline < now) ||
-                          (task.is_completed && completedAt && completedAt > deadline)
-                        );
-
-                        let statusBadge;
-                        if (isOverdue) {
-                          statusBadge = <span className="badge badge-overdue">OVERDUE</span>;
-                        } else if (task.is_completed) {
-                          statusBadge = <span className="badge badge-completed">COMPLETED</span>;
-                        } else {
-                          statusBadge = <span className="badge badge-active">ACTIVE</span>;
-                        }
-
-
+                      currentRows.map((userRow, index) => {
+                        const globalIndex = indexOfFirstRow + index + 1;
+                        const prodVal = Number(userRow.productivity);
+                        const displayProd = userRow.total_tasks === 0 || prodVal === 0 
+                          ? "0%" 
+                          : `${prodVal.toFixed(1)}%`;
+                        
                         return (
-                          <tr key={task.id_tasks}>
+                          <tr key={userRow.id_users}>
+                            <td>{globalIndex}</td>
                             <td>
-                              <div className="admin-table-title">{task.title}</div>
-                              <div className="admin-table-subtitle">{task.description || "-"}</div>
+                              <div className="admin-table-title">{userRow.username}</div>
                             </td>
+                            <td>{userRow.email}</td>
+                            <td>{userRow.total_tasks}</td>
+                            <td>{userRow.pending}</td>
+                            <td>{userRow.on_time}</td>
+                            <td>{userRow.overdue}</td>
                             <td>
-                              <span className={`badge badge-${task.priority}`}>
-                                {task.priority.toUpperCase()}
+                              <span 
+                                className="badge" 
+                                style={{ 
+                                  backgroundColor: prodVal >= 75 ? "#ecfdf5" : prodVal >= 40 ? "#fffbeb" : "#fef2f2",
+                                  color: prodVal >= 75 ? "#059669" : prodVal >= 40 ? "#d97706" : "#dc2626",
+                                  fontWeight: "600"
+                                }}
+                              >
+                                {displayProd}
                               </span>
                             </td>
-                            <td>{statusBadge}</td>
-                            <td>{deadline ? deadline.toLocaleDateString("id-ID") : "-"}</td>
+                            <td style={{ textAlign: "center" }}>
+                              <button
+                                className="btn-primary"
+                                style={{ 
+                                  padding: "6px 12px", 
+                                  fontSize: "12px", 
+                                  borderRadius: "4px",
+                                  backgroundColor: "#f1f5f9",
+                                  border: "1px solid #cbd5e1",
+                                  color: "#334155",
+                                  fontWeight: "600",
+                                  cursor: "pointer",
+                                  transition: "all 0.2s"
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.target.style.backgroundColor = "#e2e8f0";
+                                  e.target.style.color = "#0f172a";
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.target.style.backgroundColor = "#f1f5f9";
+                                  e.target.style.color = "#334155";
+                                }}
+                                onClick={() => handleDownloadUserPDF(userRow.id_users, userRow.username)}
+                                disabled={downloadingPdf[userRow.id_users]}
+                              >
+                                {downloadingPdf[userRow.id_users] ? "..." : "PDF"}
+                              </button>
+                            </td>
                           </tr>
                         );
                       })
@@ -482,51 +750,40 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
-        )}
 
-        {/* TAB PANEL: TUGAS OVERDUE */}
-        {activeTab === "overdue-tasks" && (
-          <div className="tab-panel active">
-            <div className="board-card">
-              <div className="board-title admin-dash-board-title">
-                Tugas Overdue ({overdueCount})
-              </div>
-              <div className="overdue-list-row">
-                {loading && overdueTasks.length === 0 ? (
-                  <div className="empty-state">
-                    <p>Memuat tugas overdue...</p>
+              {/* PAGINATION FOOTER */}
+              {filteredAndSortedUsersStats.length > 0 && (
+                <div className="productivity-footer">
+                  <div className="productivity-footer-text">
+                    Menampilkan {currentRows.length} dari {filteredAndSortedUsersStats.length} laporan
                   </div>
-                ) : overdueTasks.length === 0 ? (
-                  <div className="empty-state">
-                    <div className="empty-state-icon">🎉</div>
-                    <p>Hebat! Tidak ada tugas yang terlambat.</p>
+                  <div className="pagination-controls">
+                    <button
+                      className="pagination-btn"
+                      onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                    >
+                      &lt;
+                    </button>
+                    {Array.from({ length: totalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                      <button
+                        key={pageNum}
+                        className={`pagination-btn ${currentPage === pageNum ? "active" : ""}`}
+                        onClick={() => setCurrentPage(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    ))}
+                    <button
+                      className="pagination-btn"
+                      onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                    >
+                      &gt;
+                    </button>
                   </div>
-                ) : (
-                  overdueTasks.map((task) => {
-                    const deadline = task.deadline ? new Date(task.deadline) : null;
-                    return (
-                      <div className="task-item-overdue" key={task.id_tasks}>
-                        <h3 className="task-title admin-dash-task-item-title">
-                          {task.title}
-                        </h3>
-                        <p className="task-desc admin-dash-task-item-desc">
-                          {task.description || "-"}
-                        </p>
-                        <div className="task-badges">
-                          <span className="badge badge-high admin-dash-badge-high">
-                            HIGH
-                          </span>
-                          <span className="badge badge-deadline-overdue admin-dash-badge-overdue">
-                            Deadline: {deadline ? deadline.toLocaleDateString("id-ID") : "-"}
-                          </span>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -606,6 +863,270 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                   })
                 )}
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB PANEL: KELOLA AKUN USER */}
+        {activeTab === "users" && (
+          <div className="tab-panel active">
+            <div className="board-card">
+              <div className="board-header" style={{ marginBottom: "20px", flexDirection: "column", alignItems: "flex-start", gap: "8px" }}>
+                <div className="board-title">Kelola Akun User</div>
+                <p style={{ fontSize: "14px", color: "#64748b", margin: 0, lineHeight: "1.5" }}>
+                  Gunakan panel ini untuk menonaktifkan (<i>soft delete</i>) atau memulihkan kembali akun pengguna DoneRight. Akun pengguna yang dinonaktifkan tidak akan dapat masuk (<i>login</i>) ke sistem.
+                </p>
+              </div>
+
+              {/* FILTERS FOR USER ACCOUNTS */}
+              <div className="prod-table-filters" style={{ marginTop: "0px", marginBottom: "20px" }}>
+                <div className="search-input-wrapper">
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor" 
+                    strokeWidth={2.5}
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                  <input
+                    type="text"
+                    className="filter-input"
+                    placeholder="Cari user berdasarkan username atau email..."
+                    value={searchUser}
+                    onChange={(e) => setSearchUser(e.target.value)}
+                  />
+                </div>
+
+                <CustomSelect
+                  value={sortByUser}
+                  onChange={setSortByUser}
+                  options={[
+                    { value: "", label: "Urutkan: Default" },
+                    { value: "name-asc", label: "Urutkan: Nama A-Z" },
+                    { value: "name-desc", label: "Urutkan: Nama Z-A" },
+                    { value: "status-active", label: "Urutkan: Status Aktif" },
+                    { value: "status-inactive", label: "Urutkan: Status Nonaktif" }
+                  ]}
+                  placeholder="Urutkan"
+                />
+              </div>
+
+              <div className="admin-table-container">
+                <table className="admin-table">
+                  <thead>
+                    <tr>
+                      <th style={{ width: "60px" }}>No</th>
+                      <th style={{ width: "80px" }}>Avatar</th>
+                      <th>Username</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Status</th>
+                      <th style={{ width: "160px", textAlign: "center" }}>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {loadingUsersList && usersList.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="admin-dash-empty-td">
+                          Memuat data user...
+                        </td>
+                      </tr>
+                    ) : filteredAndSortedUsersList.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" className="admin-dash-empty-td">
+                          {usersList.length === 0 ? "Tidak ada data user terdaftar." : "Tidak ada data user sesuai kriteria filter."}
+                        </td>
+                      </tr>
+                    ) : (
+                      (() => {
+                        const uItemsPerPage = 7;
+                        const uIndexOfLastRow = usersCurrentPage * uItemsPerPage;
+                        const uIndexOfFirstRow = uIndexOfLastRow - uItemsPerPage;
+                        const uCurrentRows = filteredAndSortedUsersList.slice(uIndexOfFirstRow, uIndexOfLastRow);
+
+                        return (
+                          <>
+                            {uCurrentRows.map((userRow, index) => {
+                              const globalIndex = uIndexOfFirstRow + index + 1;
+                              const isSelf = user && user.id_users === userRow.id_users;
+                              const isActive = !userRow.deleted_at;
+
+                              return (
+                                <tr key={userRow.id_users}>
+                                  <td>{globalIndex}</td>
+                                  <td>
+                                    {userRow.avatar ? (
+                                      <img 
+                                        src={userRow.avatar} 
+                                        alt="Avatar" 
+                                        style={{ width: "32px", height: "32px", borderRadius: "50%", objectFit: "cover" }} 
+                                      />
+                                    ) : (
+                                      <div 
+                                        style={{ 
+                                          width: "32px", 
+                                          height: "32px", 
+                                          borderRadius: "50%", 
+                                          backgroundColor: "#f1f5f9", 
+                                          display: "flex", 
+                                          alignItems: "center", 
+                                          justifyContent: "center",
+                                          color: "#64748b",
+                                          fontSize: "12px",
+                                          fontWeight: "600",
+                                          border: "1px solid #cbd5e1"
+                                        }}
+                                      >
+                                        {userRow.username.charAt(0).toUpperCase()}
+                                      </div>
+                                    )}
+                                  </td>
+                                  <td>
+                                    <div className="admin-table-title" style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                                      {userRow.username} 
+                                      {isSelf && (
+                                        <span style={{ 
+                                          fontSize: "11px", 
+                                          backgroundColor: "#ede9fe", 
+                                          color: "var(--primary-color)", 
+                                          fontWeight: "600",
+                                          padding: "2px 6px",
+                                          borderRadius: "4px"
+                                        }}>
+                                          Anda
+                                        </span>
+                                      )}
+                                    </div>
+                                  </td>
+                                  <td>{userRow.email}</td>
+                                  <td>
+                                    <span 
+                                      className="badge"
+                                      style={{
+                                        backgroundColor: userRow.role === "admin" ? "#f3e8ff" : "#f1f5f9",
+                                        color: userRow.role === "admin" ? "#7c3aed" : "#475569",
+                                        fontWeight: "600"
+                                      }}
+                                    >
+                                      {userRow.role.toUpperCase()}
+                                    </span>
+                                  </td>
+                                  <td>
+                                    {isActive ? (
+                                      <span className="badge badge-active">AKTIF</span>
+                                    ) : (
+                                      <span className="badge badge-overdue">NONAKTIF</span>
+                                    )}
+                                  </td>
+                                  <td style={{ textAlign: "center" }}>
+                                    {isSelf ? (
+                                      <span style={{ fontSize: "13px", color: "#94a3b8", fontStyle: "italic" }}>Tidak ada aksi</span>
+                                    ) : isActive ? (
+                                      <button
+                                        className="btn-batal"
+                                        style={{ 
+                                          padding: "6px 12px", 
+                                          fontSize: "12px", 
+                                          borderRadius: "6px",
+                                          border: "1px solid #fee2e2",
+                                          backgroundColor: "#fff5f5",
+                                          color: "#ef4444",
+                                          fontWeight: "600",
+                                          cursor: "pointer",
+                                          transition: "all 0.2s"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.target.style.backgroundColor = "#fee2e2";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.target.style.backgroundColor = "#fff5f5";
+                                        }}
+                                        onClick={() => handleSoftDeleteUser(userRow.id_users, userRow.username)}
+                                      >
+                                        Nonaktifkan
+                                      </button>
+                                    ) : (
+                                      <button
+                                        className="btn-primary"
+                                        style={{ 
+                                          padding: "6px 12px", 
+                                          fontSize: "12px", 
+                                          borderRadius: "6px",
+                                          border: "1px solid var(--primary-color)",
+                                          backgroundColor: "#f5f3ff",
+                                          color: "var(--primary-color)",
+                                          fontWeight: "600",
+                                          cursor: "pointer",
+                                          transition: "all 0.2s"
+                                        }}
+                                        onMouseEnter={(e) => {
+                                          e.target.style.backgroundColor = "#ede9fe";
+                                        }}
+                                        onMouseLeave={(e) => {
+                                          e.target.style.backgroundColor = "#f5f3ff";
+                                        }}
+                                        onClick={() => handleRestoreUser(userRow.id_users, userRow.username)}
+                                      >
+                                        Pulihkan
+                                      </button>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </>
+                        );
+                      })()
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* PAGINATION FOOTER */}
+              {filteredAndSortedUsersList.length > 0 && (
+                (() => {
+                  const uItemsPerPage = 7;
+                  const uIndexOfLastRow = usersCurrentPage * uItemsPerPage;
+                  const uIndexOfFirstRow = uIndexOfLastRow - uItemsPerPage;
+                  const uCurrentRows = filteredAndSortedUsersList.slice(uIndexOfFirstRow, uIndexOfLastRow);
+                  const uTotalPages = Math.ceil(filteredAndSortedUsersList.length / uItemsPerPage);
+
+                  return (
+                    <div className="productivity-footer">
+                      <div className="productivity-footer-text">
+                        Menampilkan {uCurrentRows.length} dari {filteredAndSortedUsersList.length} user
+                      </div>
+                      <div className="pagination-controls">
+                        <button
+                          className="pagination-btn"
+                          onClick={() => setUsersCurrentPage((prev) => Math.max(prev - 1, 1))}
+                          disabled={usersCurrentPage === 1}
+                        >
+                          &lt;
+                        </button>
+                        {Array.from({ length: uTotalPages }, (_, idx) => idx + 1).map((pageNum) => (
+                          <button
+                            key={pageNum}
+                            className={`pagination-btn ${usersCurrentPage === pageNum ? "active" : ""}`}
+                            onClick={() => setUsersCurrentPage(pageNum)}
+                          >
+                            {pageNum}
+                          </button>
+                        ))}
+                        <button
+                          className="pagination-btn"
+                          onClick={() => setUsersCurrentPage((prev) => Math.min(prev + 1, uTotalPages))}
+                          disabled={usersCurrentPage === uTotalPages}
+                        >
+                          &gt;
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })()
+              )}
             </div>
           </div>
         )}
@@ -728,3 +1249,65 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
     </div>
   );
 }
+
+function CustomSelect({ value, onChange, options, placeholder, isFormInput = false }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = React.useRef(null);
+
+  React.useEffect(() => {
+    function handleClickOutside(event) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => String(o.value) === String(value));
+
+  return (
+    <div ref={dropdownRef} className="custom-select-container dashboard-select-container">
+      <div 
+        className={`custom-select-trigger ${isFormInput ? "dashboard-select-trigger-form" : "dashboard-select-trigger-filter"} ${isOpen ? "open" : ""} ${selectedOption && selectedOption.value !== "" ? "has-value" : ""}`}
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{selectedOption ? selectedOption.label : placeholder}</span>
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="16" 
+          height="16" 
+          fill="none" 
+          viewBox="0 0 24 24" 
+          stroke="currentColor" 
+          strokeWidth={2.5}
+          className={`dashboard-select-icon ${isOpen ? "open" : ""}`}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+      {isOpen && (
+        <div className="custom-select-options dashboard-select-options">
+          {options.map((option) => (
+            <div
+              key={option.value}
+              className={`custom-select-option dashboard-select-option ${String(value) === String(option.value) ? "selected" : ""}`}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+            >
+              <span>{option.label}</span>
+              {String(value) === String(option.value) && (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+

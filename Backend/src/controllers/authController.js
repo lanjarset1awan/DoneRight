@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import crypto from "crypto";
+import pool from "../config/db.js";
 
 import {
     createUser,
@@ -126,3 +128,107 @@ export const login = async (
         });
     }
 };
+
+// FORGOT PASSWORD
+export const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                message: "Email is required",
+            });
+        }
+
+        const user = await findUserByEmail(email);
+        if (!user) {
+            return res.status(404).json({
+                message: "User with this email does not exist",
+            });
+        }
+
+        const resetToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(resetToken)
+            .digest("hex");
+
+        const expires = new Date(Date.now() + 3600000); // 1 hour from now
+
+        await pool.query(
+            `UPDATE users
+             SET reset_token = $1, reset_token_expires = $2
+             WHERE id_users = $3`,
+            [hashedToken, expires, user.id_users]
+        );
+
+        const resetUrl = `http://localhost:5173/?resetToken=${resetToken}`;
+
+        console.log("=========================================");
+        console.log("PASSWORD RESET REQUEST");
+        console.log(`Email: ${email}`);
+        console.log(`Reset URL: ${resetUrl}`);
+        console.log("=========================================");
+
+        res.status(200).json({
+            message: "Password reset link has been sent to your email (dev mode)",
+            devResetUrl: resetUrl,
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+
+        if (!token || !newPassword) {
+            return res.status(400).json({
+                message: "Token and new password are required",
+            });
+        }
+
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const query = `
+            SELECT * FROM users
+            WHERE reset_token = $1
+              AND reset_token_expires > CURRENT_TIMESTAMP
+              AND deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [hashedToken]);
+        const user = result.rows[0];
+
+        if (!user) {
+            return res.status(400).json({
+                message: "Reset token is invalid or has expired",
+            });
+        }
+
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+        await pool.query(
+            `UPDATE users
+             SET password_hash = $1, reset_token = NULL, reset_token_expires = NULL
+             WHERE id_users = $2`,
+            [hashedPassword, user.id_users]
+        );
+
+        res.status(200).json({
+            message: "Password has been reset successfully",
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+};

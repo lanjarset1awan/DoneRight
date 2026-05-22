@@ -8,6 +8,8 @@ export default function Register({ onNavigateLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
@@ -68,7 +70,8 @@ export default function Register({ onNavigateLogin }) {
     <div className="auth-body">
       <div className="auth-container">
         <div className="auth-header">
-          <div className="logo-icon">
+          <a href="/" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <div className="logo-icon">
               <div className="logo-inner">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
@@ -84,10 +87,11 @@ export default function Register({ onNavigateLogin }) {
                     d="M5 13l4 4L19 7"
                   />
                 </svg>
+              </div>
             </div>
-          </div>
-          <h1>DoneRight</h1>
-          <p>Daftar Akun Baru</p>
+            <h1>Daftar Akun</h1>
+            <p>Sistem Manajemen Tugas Mahasiswa</p>
+          </a>
         </div>
 
         <div className="auth-card">
@@ -137,28 +141,67 @@ export default function Register({ onNavigateLogin }) {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                className="form-input"
-                placeholder="Minimal 8 karakter dengan 1 karakter unik"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <div className="auth-password-container">
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  id="password"
+                  className="form-input"
+                  placeholder="Minimal 8 karakter dengan 1 karakter unik"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  title={passwordVisible ? "Sembunyikan" : "Tampilkan"}
+                >
+                  {passwordVisible ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <div className="form-group">
               <label htmlFor="confirmPassword">Konfirmasi Password</label>
-              <input
-                type="password"
-                id="confirmPassword"
-                className="form-input"
-                placeholder="Masukkan ulang password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
+              <div className="auth-password-container">
+                <input
+                  type={confirmPasswordVisible ? "text" : "password"}
+                  id="confirmPassword"
+                  className="form-input"
+                  placeholder="Masukkan ulang password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
+                  title={confirmPasswordVisible ? "Sembunyikan" : "Tampilkan"}
+                >
+                  {confirmPasswordVisible ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
 

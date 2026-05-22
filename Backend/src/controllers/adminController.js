@@ -6,6 +6,9 @@ import {
     createGlobalCategory,
     deleteGlobalCategory,
     updateGlobalCategory,
+    getAllUsers,
+    softDeleteUser,
+    restoreUser,
 } from "../models/adminModel.js";
 
 export const getAllUserTasks =
@@ -98,6 +101,47 @@ export const editCategory = async (req, res) => {
         res.status(200).json({ message: "Category updated", category });
     } catch (error) {
         console.error(error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// GET ALL USERS (ADMIN)
+export const adminGetUsers = async (req, res) => {
+    try {
+        const users = await getAllUsers();
+        res.status(200).json(users);
+    } catch (error) {
+        console.error("Get users admin error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// SOFT DELETE USER (ADMIN)
+export const adminSoftDeleteUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await softDeleteUser(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User deactivated successfully", user });
+    } catch (error) {
+        console.error("Soft delete user admin error:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+};
+
+// RESTORE USER (ADMIN)
+export const adminRestoreUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const user = await restoreUser(id);
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        res.status(200).json({ message: "User restored successfully", user });
+    } catch (error) {
+        console.error("Restore user admin error:", error);
         res.status(500).json({ message: "Internal server error" });
     }
 };

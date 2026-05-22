@@ -3,9 +3,10 @@ import "../style/pages/Login.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function Login({ onLoginSuccess, onNavigateRegister }) {
+export default function Login({ onLoginSuccess, onNavigateRegister, onNavigateForgotPassword }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordVisible, setPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -32,7 +33,7 @@ export default function Login({ onLoginSuccess, onNavigateRegister }) {
         throw new Error(data.message || "Email atau password salah.");
       }
 
-      onLoginSuccess(data.token, data.user);
+      onLoginSuccess(data.token, data.user, password);
     } catch (err) {
       console.error("Login error:", err);
       setErrorMsg(err.message || "Terjadi kesalahan saat masuk.");
@@ -45,26 +46,28 @@ export default function Login({ onLoginSuccess, onNavigateRegister }) {
     <div className="auth-body">
       <div className="auth-container">
         <div className="auth-header">
-          <div className="logo-icon">
-            <div className="logo-inner">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="check-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
+          <a href="/" style={{ textDecoration: "none", color: "inherit", display: "block" }}>
+            <div className="logo-icon">
+              <div className="logo-inner">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="check-icon"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={3}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
             </div>
-          </div>
-          <h1>DoneRight</h1>
-          <p>Sistem Manajemen Tugas Mahasiswa</p>
+            <h1>DoneRight</h1>
+            <p>Sistem Manajemen Tugas Mahasiswa</p>
+          </a>
         </div>
 
         <div className="auth-card">
@@ -92,17 +95,53 @@ export default function Login({ onLoginSuccess, onNavigateRegister }) {
             </div>
 
             <div className="form-group">
-              <label htmlFor="password">Password</label>
-              <input
-                type="password"
-                id="password"
-                className="form-input"
-                placeholder="Masukkan password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                disabled={loading}
-              />
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+                <label htmlFor="password" style={{ marginBottom: 0 }}>Password</label>
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    onNavigateForgotPassword();
+                  }}
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: "500",
+                    color: "#4f46e5",
+                    textDecoration: "none",
+                  }}
+                >
+                  Lupa Password?
+                </a>
+              </div>
+              <div className="auth-password-container">
+                <input
+                  type={passwordVisible ? "text" : "password"}
+                  id="password"
+                  className="form-input"
+                  placeholder="Masukkan password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  disabled={loading}
+                />
+                <button
+                  type="button"
+                  className="auth-eye-btn"
+                  onClick={() => setPasswordVisible(!passwordVisible)}
+                  title={passwordVisible ? "Sembunyikan" : "Tampilkan"}
+                >
+                  {passwordVisible ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18" />
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
 

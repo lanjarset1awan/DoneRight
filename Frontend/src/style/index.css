@@ -41,6 +41,36 @@ body {
     min-height: 100vh;
 }
 
+.auth-password-container {
+    position: relative;
+    width: 100%;
+}
+
+.auth-eye-btn {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: #94a3b8;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.auth-eye-btn:hover {
+    color: #475569;
+}
+
+.auth-eye-btn svg {
+    width: 20px;
+    height: 20px;
+}
+
 /* AUTHENTICATION PAGES (Login / Register) */
 .auth-body {
     background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
@@ -209,6 +239,19 @@ body {
     display: flex;
     align-items: center;
     gap: 12px;
+}
+
+.navbar-brand .logo-icon {
+    width: 32px;
+    height: 32px;
+    margin: 0;
+    box-shadow: none;
+}
+
+.navbar-brand .logo-inner {
+    width: 16px;
+    height: 16px;
+    border-width: 2px;
 }
 
 .navbar-logo-icon {
@@ -1277,6 +1320,16 @@ body {
         padding: 10px 8px;
         font-size: 13px;
         margin: 0 !important;
+    }
+    /* Override for Navbar to keep buttons inline horizontally */
+    .dashboard-navbar .btn-group-row {
+        display: flex;
+        width: auto;
+        gap: 8px;
+    }
+    .dashboard-navbar .btn-group-row button {
+        width: auto;
+        padding: 6px 10px;
     }
 }
 
