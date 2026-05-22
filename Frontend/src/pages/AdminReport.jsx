@@ -7,7 +7,6 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api
 
 export default function AdminReport({ token, user, onLogout, onNavigateDashboard, onOpenProfile }) {
   const [stats, setStats] = useState(null);
-  const [overdueCount, setOverdueCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
@@ -27,15 +26,6 @@ export default function AdminReport({ token, user, onLogout, onNavigateDashboard
         const statsData = await statsRes.json();
         setStats(statsData);
       }
-
-      // Fetch overdue tasks untuk badge
-      const overdueRes = await fetch(`${BASE_URL}/tasks/admin/overdue`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (overdueRes.ok) {
-        const overdueData = await overdueRes.json();
-        setOverdueCount(overdueData.length);
-      }
     } catch (err) {
       console.error("Fetch report error:", err);
     } finally {
@@ -51,7 +41,7 @@ export default function AdminReport({ token, user, onLogout, onNavigateDashboard
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const res = await fetch(`${BASE_URL}/statistics/export-pdf`, {
+      const res = await fetch(`${BASE_URL}/statistics/pdf/global`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) {
@@ -81,6 +71,7 @@ export default function AdminReport({ token, user, onLogout, onNavigateDashboard
   const total = stats ? Number(stats.total_tasks) || 0 : 0;
   const completed = stats ? Number(stats.completed_tasks) || 0 : 0;
   const onTime = stats ? Number(stats.on_time) || 0 : 0;
+  const overdueCount = stats ? Number(stats.overdue) || 0 : 0;
   const completionRate = total > 0 ? Math.round((onTime / total) * 100) : 0;
 
 
