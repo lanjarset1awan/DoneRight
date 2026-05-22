@@ -142,8 +142,10 @@ export default function App() {
         return (
           <Trash
             token={token}
+            user={user}
             onLogout={handleLogout}
             onNavigateDashboard={() => setCurrentPage("dashboard")}
+            onNavigateProfile={() => setCurrentPage("profile")}
           />
         );
       case "admin":
@@ -183,6 +185,7 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateDashboard={() => setCurrentPage("dashboard")}
+            onNavigateProfile={() => setCurrentPage("profile")}
           />
         );
       case "report-admin":
@@ -192,6 +195,7 @@ export default function App() {
             user={user}
             onLogout={handleLogout}
             onNavigateDashboard={() => setCurrentPage("admin")}
+            onNavigateProfile={() => setCurrentPage("profile")}
           />
         );
       default:

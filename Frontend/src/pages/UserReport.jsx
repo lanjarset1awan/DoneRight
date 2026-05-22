@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
 import "../style/pages/UserReport.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function UserReport({ token, onLogout, onNavigateDashboard }) {
+export default function UserReport({ token, user, onLogout, onNavigateDashboard, onNavigateProfile }) {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [downloading, setDownloading] = useState(false);
@@ -75,35 +76,13 @@ export default function UserReport({ token, onLogout, onNavigateDashboard }) {
       `}</style>
 
       {/* NAVBAR */}
-      <nav className="dashboard-navbar">
-        <div className="navbar-brand">
-          <div className="logo-icon user-report-logo">
-            <div className="logo-inner">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="check-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-          </div>
-          <div>
-            <div className="navbar-title">DoneRight</div>
-            <div className="navbar-subtitle">Analisis Performa Produktivitas</div>
-          </div>
-        </div>
-        <button className="btn-logout" onClick={onLogout}>
-          Logout
-        </button>
-      </nav>
+      <Navbar
+        title="DoneRight"
+        subtitle="Analisis Performa Produktivitas"
+        user={user}
+        onNavigateProfile={onNavigateProfile}
+        onLogout={onLogout}
+      />
 
       {/* MAIN CONTAINER */}
       <div className="dashboard-container user-report-container">

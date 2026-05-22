@@ -287,17 +287,17 @@ body {
 .btn-logout {
     background: transparent;
     border: none;
-    color: var(--text-muted);
+    color: #ef4444;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: color 0.2s;
+    transition: all 0.2s;
     padding: 8px 12px;
     border-radius: 6px;
 }
 
 .btn-logout:hover {
-    color: #ef4444;
+    color: #b91c1c;
     background-color: #fef2f2;
 }
 
@@ -1322,14 +1322,41 @@ body {
         margin: 0 !important;
     }
     /* Override for Navbar to keep buttons inline horizontally */
-    .dashboard-navbar .btn-group-row {
-        display: flex;
-        width: auto;
-        gap: 8px;
+    .dashboard-navbar .btn-group-row,
+    .dashboard-navbar .admin-dash-header-row {
+        display: flex !important;
+        align-items: center !important;
+        width: auto !important;
+        gap: 8px !important;
     }
-    .dashboard-navbar .btn-group-row button {
-        width: auto;
-        padding: 6px 10px;
+    .dashboard-navbar .navbar-subtitle {
+        display: none !important;
+    }
+    .dashboard-navbar .navbar-brand {
+        gap: 8px !important;
+    }
+    .dashboard-navbar .nav-btn-text {
+        display: none !important;
+    }
+    .dashboard-navbar button,
+    .dashboard-navbar .btn-secondary,
+    .dashboard-navbar .btn-logout,
+    .dashboard-navbar .btn-notif-bell,
+    .dashboard-navbar .admin-dash-btn-report {
+        padding: 0 !important;
+        min-width: 36px !important;
+        width: 36px !important;
+        height: 36px !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 0 !important;
+        border-radius: 50% !important;
+        box-shadow: none !important;
+    }
+    .dashboard-navbar .btn-secondary img {
+        width: 22px !important;
+        height: 22px !important;
     }
 }
 

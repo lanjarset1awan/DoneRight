@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-vars, react-hooks/set-state-in-effect */
 import React, { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
 import "../style/pages/AdminDashboard.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
@@ -442,60 +443,14 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
   return (
     <div>
       {/* NAVBAR */}
-      <nav className="dashboard-navbar">
-        <div className="navbar-brand">
-          <div className="logo-icon">
-            <div className="logo-inner">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="check-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-          </div>
-          <div>
-            <div className="navbar-title">DoneRight Admin</div>
-            <div className="navbar-subtitle">Admin DoneRight</div>
-          </div>
-        </div>
-        <div className="admin-dash-header-row">
-          <button
-            className="btn-primary admin-dash-btn-report"
-            onClick={onNavigateReport}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Laporan
-          </button>
-          <button className="btn-secondary" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 12px" }} onClick={onNavigateProfile}>
-            {user && user.avatar ? (
-              <img 
-                src={user.avatar} 
-                alt="Avatar" 
-                style={{ width: "20px", height: "20px", borderRadius: "50%", objectFit: "cover" }} 
-              />
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-            )}
-            Profil
-          </button>
-          <button className="btn-logout" onClick={onLogout}>
-            Logout
-          </button>
-        </div>
-      </nav>
+      <Navbar
+        title="DoneRight Admin"
+        subtitle="Admin DoneRight"
+        user={user}
+        onNavigateProfile={onNavigateProfile}
+        onNavigateReport={onNavigateReport}
+        onLogout={onLogout}
+      />
 
       {/* MAIN CONTAINER */}
       <div className="dashboard-container">

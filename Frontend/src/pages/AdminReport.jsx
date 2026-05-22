@@ -1,10 +1,11 @@
 /* eslint-disable react-hooks/set-state-in-effect */
 import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
 import "../style/pages/AdminReport.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function AdminReport({ token, onLogout, onNavigateDashboard }) {
+export default function AdminReport({ token, user, onLogout, onNavigateDashboard, onNavigateProfile }) {
   const [stats, setStats] = useState(null);
   const [overdueCount, setOverdueCount] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -22,14 +23,21 @@ export default function AdminReport({ token, onLogout, onNavigateDashboard }) {
       const statsRes = await fetch(`${BASE_URL}/statistics/global`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      const statsData = statsRes.ok ? await statsRes.json() : null;
-      setStats(statsData);
+      if (statsRes.ok) {
+        const statsData = await statsRes.json();
+        setStats(statsData);
+      }
 
-      if (statsData) {
-        setOverdueCount(Number(statsData.overdue) || 0);
+      // Fetch overdue tasks untuk badge
+      const overdueRes = await fetch(`${BASE_URL}/tasks/admin/overdue`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (overdueRes.ok) {
+        const overdueData = await overdueRes.json();
+        setOverdueCount(overdueData.length);
       }
     } catch (err) {
-      console.error("Global report load error:", err);
+      console.error("Fetch report error:", err);
     } finally {
       setLoading(false);
     }
@@ -43,21 +51,25 @@ export default function AdminReport({ token, onLogout, onNavigateDashboard }) {
   const handleDownloadPDF = async () => {
     setDownloading(true);
     try {
-      const res = await fetch(`${BASE_URL}/statistics/pdf/global`, {
+      const res = await fetch(`${BASE_URL}/statistics/export-pdf`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (!res.ok) throw new Error("Gagal mengunduh dokumen global.");
-
+      if (!res.ok) {
+        showToast("Gagal mengunduh laporan PDF", "error");
+        setDownloading(false);
+        return;
+      }
+      
       const blob = await res.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = "Laporan_Sistem_Global.pdf";
+      a.download = `Laporan_Sistem_${new Date().toISOString().split('T')[0]}.pdf`;
       document.body.appendChild(a);
       a.click();
-      a.remove();
       window.URL.revokeObjectURL(url);
-      showToast("Laporan PDF Global berhasil diunduh!", "success");
+      a.remove();
+      showToast("Laporan PDF berhasil diunduh!", "success");
     } catch (err) {
       console.error("Global PDF download error:", err);
       showToast("Gagal mengunduh laporan PDF global.", "error");
@@ -82,35 +94,13 @@ export default function AdminReport({ token, onLogout, onNavigateDashboard }) {
       `}</style>
 
       {/* NAVBAR */}
-      <nav className="dashboard-navbar">
-        <div className="navbar-brand">
-          <div className="logo-icon user-report-logo">
-            <div className="logo-inner">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="check-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-          </div>
-          <div>
-            <div className="navbar-title">DoneRight Admin</div>
-            <div className="navbar-subtitle">Analisis Performa Sistem Global</div>
-          </div>
-        </div>
-        <button className="btn-logout" onClick={onLogout}>
-          Logout
-        </button>
-      </nav>
+      <Navbar
+        title="DoneRight Admin"
+        subtitle="Analisis Performa Sistem Global"
+        user={user}
+        onNavigateProfile={onNavigateProfile}
+        onLogout={onLogout}
+      />
 
       {/* MAIN CONTAINER */}
       <div className="dashboard-container admin-report-container">

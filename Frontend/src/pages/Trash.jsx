@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
 import "../style/pages/Trash.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function Trash({ token, onLogout, onNavigateDashboard }) {
+export default function Trash({ token, user, onLogout, onNavigateDashboard, onNavigateProfile }) {
   const [trashTasks, setTrashTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
@@ -41,48 +42,60 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Restore task (individual)
-  const handleRestore = async (id) => {
+  const executeRestore = async (id) => {
     setProcessing(true);
     try {
-      const res = await fetch(`${BASE_URL}/tasks/restore/${id}`, {
+      const res = await fetch(`${BASE_URL}/tasks/${id}/restore`, {
         method: "PATCH",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        await fetchTrash();
+        setTrashTasks(prev => prev.filter(t => t.id_tasks !== id));
       }
     } catch (err) {
-      console.error("Restore task error:", err);
+      console.error("Restore error:", err);
     } finally {
       setProcessing(false);
+      setConfirmModal(prev => ({ ...prev, show: false }));
     }
   };
 
-  // Delete permanently actual
+  const handleRestore = (id) => {
+    setConfirmModal({
+      show: true,
+      title: "Restorasi Tugas",
+      message: "Apakah Anda yakin ingin mengembalikan tugas ini ke Dashboard?",
+      confirmText: "Ya, Kembalikan",
+      cancelText: "Batal",
+      isDanger: false,
+      onConfirm: () => executeRestore(id),
+      onCancel: () => {}
+    });
+  };
+
   const executeDeletePermanent = async (id) => {
     setProcessing(true);
     try {
-      const res = await fetch(`${BASE_URL}/tasks/permanent/${id}`, {
+      const res = await fetch(`${BASE_URL}/tasks/${id}/permanent`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });
       if (res.ok) {
-        await fetchTrash();
+        setTrashTasks(prev => prev.filter(t => t.id_tasks !== id));
       }
     } catch (err) {
-      console.error("Delete permanent error:", err);
+      console.error("Permanent delete error:", err);
     } finally {
       setProcessing(false);
+      setConfirmModal(prev => ({ ...prev, show: false }));
     }
   };
 
-  // Delete permanently (individual)
   const handleDeletePermanent = (id) => {
     setConfirmModal({
       show: true,
       title: "Hapus Permanen",
-      message: "Apakah Anda yakin ingin menghapus tugas ini secara PERMANEN? Tindakan ini tidak dapat dibatalkan!",
+      message: "PERINGATAN! Tugas ini akan dihapus secara PERMANEN dan tidak dapat dikembalikan lagi. Anda yakin?",
       confirmText: "Ya, Hapus Permanen",
       cancelText: "Batal",
       isDanger: true,
@@ -91,7 +104,6 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
     });
   };
 
-  // Restore all actual
   const executeRestoreAll = async () => {
     setProcessing(true);
     try {
@@ -164,37 +176,13 @@ export default function Trash({ token, onLogout, onNavigateDashboard }) {
   return (
     <div>
       {/* NAVBAR */}
-      <nav className="dashboard-navbar">
-        <div className="navbar-brand">
-          <div className="logo-icon">
-            <div className="logo-inner">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="check-icon"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={3}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-            </div>
-          </div>
-          <div>
-            <div className="navbar-title">DoneRight</div>
-            <div className="navbar-subtitle">
-              Keranjang Sampah & Restorasi
-            </div>
-          </div>
-        </div>
-        <button className="btn-logout" onClick={onLogout}>
-          Logout
-        </button>
-      </nav>
+      <Navbar
+        title="DoneRight"
+        subtitle="Keranjang Sampah & Restorasi"
+        user={user}
+        onNavigateProfile={onNavigateProfile}
+        onLogout={onLogout}
+      />
 
       {/* MAIN CONTAINER */}
       <div className="dashboard-container">
