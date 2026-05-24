@@ -253,9 +253,11 @@
     .notif-dropdown {
         position: fixed;
         top: 60px;
-        left: 12px;
-        right: 12px;
-        width: auto;
+        right: 16px;
+        left: auto;
+        width: 320px;
+        max-width: calc(100vw - 32px);
         border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
     }
 }
