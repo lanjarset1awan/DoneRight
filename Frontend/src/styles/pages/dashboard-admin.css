@@ -161,13 +161,6 @@
     }
     .category-admin-card {
         padding: 16px;
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-    .admin-dash-cats-row {
-        width: 100%;
-        justify-content: flex-end;
     }
 }
 
@@ -373,6 +366,7 @@
     justify-content: space-between;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
+    text-align: left;
 }
 
 .category-admin-left {
