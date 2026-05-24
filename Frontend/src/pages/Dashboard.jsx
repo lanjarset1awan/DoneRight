@@ -471,7 +471,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
         showNotifBell={true}
         tasks={tasks}
         setSelectedTask={setSelectedTask}
-        setShowDetailModal={setShowTaskModal}
+        setShowDetailModal={setShowDetailModal}
       />
 
       {/* MAIN CONTAINER */}
