@@ -33,22 +33,54 @@
     }
 }
 
+@keyframes profileModalSlideDown {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(20px) scale(0.95);
+    }
+}
+
+.profile-container.closing {
+    animation: profileModalSlideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.profile-body {
+    transition: opacity 0.3s ease;
+}
+
+.profile-body.closing {
+    opacity: 0;
+}
+
 .profile-close-btn {
     position: absolute;
     top: 20px;
     right: 20px;
     background: none;
     border: none;
-    font-size: 28px;
+    font-size: 24px;
     color: #94a3b8;
     cursor: pointer;
     line-height: 1;
-    transition: color 0.2s;
+    padding: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    width: 32px;
+    height: 32px;
+    transition: all 0.2s ease;
     z-index: 10;
 }
 
 .profile-close-btn:hover {
     color: #475569;
+    background-color: #f1f5f9;
+    transform: scale(1.08);
 }
 
 .profile-container h1 {

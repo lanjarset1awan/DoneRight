@@ -18,7 +18,19 @@ export default function Navbar({
 }) {
   const [notifications, setNotifications] = useState([]);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [isNotifClosing, setIsNotifClosing] = useState(false);
   const notifDropdownRef = useRef(null);
+
+  const showNotifDropdownRef = useRef(showNotifDropdown);
+  showNotifDropdownRef.current = showNotifDropdown;
+
+  const closeNotifDropdown = () => {
+    setIsNotifClosing(true);
+    setTimeout(() => {
+      setShowNotifDropdown(false);
+      setIsNotifClosing(false);
+    }, 190);
+  };
 
   const fetchNotifications = async () => {
     if (!token || !showNotifBell) return;
@@ -41,7 +53,7 @@ export default function Navbar({
 
     function handleClickOutside(event) {
       if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
-        setShowNotifDropdown(false);
+        if (showNotifDropdownRef.current) closeNotifDropdown();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -139,7 +151,13 @@ export default function Navbar({
           <div className="notif-bell-container" ref={notifDropdownRef}>
             <button 
               className={`btn-notif-bell ${showNotifDropdown ? "active" : ""}`}
-              onClick={() => setShowNotifDropdown(!showNotifDropdown)}
+              onClick={() => {
+                if (showNotifDropdown) {
+                  closeNotifDropdown();
+                } else {
+                  setShowNotifDropdown(true);
+                }
+              }}
               title="Notifikasi"
               type="button"
             >
@@ -152,7 +170,7 @@ export default function Navbar({
             </button>
 
             {showNotifDropdown && (
-              <div className="notif-dropdown">
+              <div className={`notif-dropdown ${isNotifClosing ? "closing" : ""}`}>
                 <div className="notif-dropdown-header">
                   <h3>Notifikasi</h3>
                   {unreadCount > 0 && (
@@ -161,7 +179,7 @@ export default function Navbar({
                     </button>
                   )}
                 </div>
-                <div className="notif-dropdown-list animate-slide-down">
+                <div className="notif-dropdown-list">
                   {notifications.length === 0 ? (
                     <div className="notif-empty-state">
                       <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="notif-empty-icon-svg">
@@ -183,7 +201,7 @@ export default function Navbar({
                             if (foundTask) {
                               setSelectedTask(foundTask);
                               setShowDetailModal(true);
-                              setShowNotifDropdown(false);
+                              closeNotifDropdown();
                             }
                           }
                           if (!notif.is_read) {

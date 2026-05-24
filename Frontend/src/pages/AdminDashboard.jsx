@@ -27,6 +27,16 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
 
   // Modals
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [closingModal, setClosingModal] = useState("");
+  
+  const closeModal = (modalType) => {
+    setClosingModal(modalType);
+    setTimeout(() => {
+      if (modalType === "category") setShowCategoryModal(false);
+      else if (modalType === "confirm") setConfirmModal(prev => ({ ...prev, show: false }));
+      setClosingModal("");
+    }, 300);
+  };
   const [categoryName, setCategoryName] = useState("");
   const [categorySubmitting, setCategorySubmitting] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -290,7 +300,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
       if (!res.ok) throw new Error("Gagal menyimpan kategori.");
 
       const isEdit = !!editingCategory;
-      setShowCategoryModal(false);
+      closeModal("category");
       setEditingCategory(null);
       setCategoryName("");
       await fetchCategories();
@@ -1107,7 +1117,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
 
       {/* MODAL: ADD / EDIT GLOBAL CATEGORY */}
       {showCategoryModal && (
-        <div className="modal-overlay active">
+        <div className={`modal-overlay active ${closingModal === "category" ? "closing" : ""}`}>
           <div className="modal-content" style={{ maxWidth: "420px" }}>
             <div className="modal-header">
               <div className="modal-title">
@@ -1116,11 +1126,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
               <button
                 type="button"
                 className="btn-close-modal admin-dash-modal-close"
-                onClick={() => {
-                  setShowCategoryModal(false);
-                  setCategoryName("");
-                  setEditingCategory(null);
-                }}
+                onClick={() => closeModal("category")}
               >
                 &times;
               </button>
@@ -1146,11 +1152,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                 <button
                   type="button"
                   className="btn-batal"
-                  onClick={() => {
-                    setShowCategoryModal(false);
-                    setEditingCategory(null);
-                    setCategoryName("");
-                  }}
+                  onClick={() => closeModal("category")}
                   disabled={categorySubmitting}
                 >
                   Batal
@@ -1165,7 +1167,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
       )}
       {/* CUSTOM CONFIRMATION MODAL */}
       {confirmModal.show && (
-        <div className="modal-overlay active admin-dash-modal-overlay">
+        <div className={`modal-overlay admin-dash-modal-overlay active ${closingModal === "confirm" ? "closing" : ""}`}>
           <div className="modal-content" style={{ maxWidth: "420px" }}>
             <div className="modal-header">
               <div className={`modal-title ${confirmModal.isDanger ? "admin-dash-modal-title-danger" : "admin-dash-modal-title-default"}`}>
@@ -1174,7 +1176,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
               <button
                 type="button"
                 className="btn-close-modal admin-dash-modal-close"
-                onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                onClick={() => closeModal("confirm")}
               >
                 &times;
               </button>
@@ -1190,7 +1192,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                 className="btn-batal admin-dash-modal-btn-cancel"
                 onClick={() => {
                   if (confirmModal.onCancel) confirmModal.onCancel();
-                  setConfirmModal({ ...confirmModal, show: false });
+                  closeModal("confirm");
                 }}
               >
                 {confirmModal.cancelText}
@@ -1200,7 +1202,7 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
                  className={confirmModal.isDanger ? "btn-hapus-modal admin-dash-modal-btn-confirm" : "btn-simpan admin-dash-modal-btn-confirm"}
                  onClick={() => {
                    if (confirmModal.onConfirm) confirmModal.onConfirm();
-                   setConfirmModal({ ...confirmModal, show: false });
+                   closeModal("confirm");
                  }}
                >
                  {confirmModal.isDanger && (
@@ -1225,17 +1227,26 @@ export default function AdminDashboard({ token, user, onLogout, onNavigateReport
 
 function CustomSelect({ value, onChange, options, placeholder, isFormInput = false }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const dropdownRef = React.useRef(null);
+
+  const closeDropdown = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+    }, 190);
+  };
 
   React.useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+        if (isOpen) closeDropdown();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const selectedOption = options.find(o => String(o.value) === String(value));
 
@@ -1243,7 +1254,13 @@ function CustomSelect({ value, onChange, options, placeholder, isFormInput = fal
     <div ref={dropdownRef} className="custom-select-container dashboard-select-container">
       <div 
         className={`custom-select-trigger ${isFormInput ? "dashboard-select-trigger-form" : "dashboard-select-trigger-filter"} ${isOpen ? "open" : ""} ${selectedOption && selectedOption.value !== "" ? "has-value" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (isOpen) {
+            closeDropdown();
+          } else {
+            setIsOpen(true);
+          }
+        }}
       >
         <span>{selectedOption ? selectedOption.label : placeholder}</span>
         <svg 
@@ -1260,14 +1277,14 @@ function CustomSelect({ value, onChange, options, placeholder, isFormInput = fal
         </svg>
       </div>
       {isOpen && (
-        <div className="custom-select-options dashboard-select-options">
+        <div className={`custom-select-options dashboard-select-options ${isClosing ? "closing" : ""}`}>
           {options.map((option) => (
             <div
               key={option.value}
               className={`custom-select-option dashboard-select-option ${String(value) === String(option.value) ? "selected" : ""}`}
               onClick={() => {
                 onChange(option.value);
-                setIsOpen(false);
+                closeDropdown();
               }}
             >
               <span>{option.label}</span>

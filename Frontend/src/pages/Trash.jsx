@@ -18,6 +18,15 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
     cancelText: "Batal",
     isDanger: true
   });
+  const [closingModal, setClosingModal] = useState("");
+
+  const closeModal = (modalType) => {
+    setClosingModal(modalType);
+    setTimeout(() => {
+      if (modalType === "confirm") setConfirmModal(prev => ({ ...prev, show: false }));
+      setClosingModal("");
+    }, 300);
+  };
 
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
 
@@ -66,7 +75,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
       console.error("Restore error:", err);
     } finally {
       setProcessing(false);
-      setConfirmModal(prev => ({ ...prev, show: false }));
+      closeModal("confirm");
     }
   };
 
@@ -98,7 +107,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
       console.error("Permanent delete error:", err);
     } finally {
       setProcessing(false);
-      setConfirmModal(prev => ({ ...prev, show: false }));
+      closeModal("confirm");
     }
   };
 
@@ -132,7 +141,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
       console.error("Restore all error:", err);
     } finally {
       setProcessing(false);
-      setConfirmModal(prev => ({ ...prev, show: false }));
+      closeModal("confirm");
     }
   };
 
@@ -169,7 +178,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
       console.error("Clear all error:", err);
     } finally {
       setProcessing(false);
-      setConfirmModal(prev => ({ ...prev, show: false }));
+      closeModal("confirm");
     }
   };
 
@@ -337,7 +346,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
         </div>
       {/* CUSTOM CONFIRMATION MODAL */}
       {confirmModal.show && (
-        <div className="modal-overlay active trash-modal-overlay">
+        <div className={`modal-overlay trash-modal-overlay active ${closingModal === "confirm" ? "closing" : ""}`}>
           <div className="modal-content" style={{ maxWidth: "420px" }}>
             <div className="modal-header">
               <div className="modal-title" style={{ color: confirmModal.isDanger ? "#ef4444" : "#0f172a" }}>
@@ -345,8 +354,8 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
               </div>
               <button
                 type="button"
-                className="trash-modal-close"
-                onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                className="btn-close-modal trash-modal-close"
+                onClick={() => closeModal("confirm")}
               >
                 &times;
               </button>
@@ -362,7 +371,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
                 className="btn-batal trash-btn-modal-cancel"
                 onClick={() => {
                   if (confirmModal.onCancel) confirmModal.onCancel();
-                  setConfirmModal({ ...confirmModal, show: false });
+                  closeModal("confirm");
                 }}
               >
                 {confirmModal.cancelText}
@@ -372,7 +381,7 @@ export default function Trash({ token, user, onLogout, onNavigateDashboard, onOp
                 className={`${confirmModal.isDanger ? "btn-hapus-modal" : "btn-simpan"} trash-btn-modal-confirm`}
                 onClick={() => {
                   if (confirmModal.onConfirm) confirmModal.onConfirm();
-                  setConfirmModal({ ...confirmModal, show: false });
+                  closeModal("confirm");
                 }}
               >
                 {confirmModal.isDanger && (

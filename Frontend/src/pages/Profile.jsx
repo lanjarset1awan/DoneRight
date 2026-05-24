@@ -6,6 +6,15 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api
 export default function Profile({ token, user, onUserUpdate, onLogout, onClose }) {
   // Navigation states
   const [isEditing, setIsEditing] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleClose = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsClosing(false);
+      onClose();
+    }, 300);
+  };
 
   // Form states
   const [username, setUsername] = useState(user ? user.username : "");
@@ -181,8 +190,8 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onClose }
   };
 
   return (
-    <div className="profile-body">
-      <div className="profile-container">
+    <div className={`profile-body ${isClosing ? "closing" : ""}`}>
+      <div className={`profile-container ${isClosing ? "closing" : ""}`}>
         
         {/* ALERTS */}
         {errorMsg && (
@@ -193,7 +202,7 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onClose }
 
         {/* MAIN PROFILE CARD */}
         <div className="profile-card">
-          <button className="profile-close-btn" onClick={onClose} aria-label="Close Profile">
+          <button className="profile-close-btn" onClick={handleClose} aria-label="Close Profile">
              &times;
           </button>
           

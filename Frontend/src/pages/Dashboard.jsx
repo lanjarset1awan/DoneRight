@@ -6,17 +6,26 @@ const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api
 
 function CustomSelect({ value, onChange, options, placeholder, isFormInput = false }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
   const dropdownRef = useRef(null);
+
+  const closeDropdown = () => {
+    setIsClosing(true);
+    setTimeout(() => {
+      setIsOpen(false);
+      setIsClosing(false);
+    }, 190);
+  };
 
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsOpen(false);
+        if (isOpen) closeDropdown();
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+  }, [isOpen]);
 
   const selectedOption = options.find(o => String(o.value) === String(value));
 
@@ -24,7 +33,13 @@ function CustomSelect({ value, onChange, options, placeholder, isFormInput = fal
     <div ref={dropdownRef} className="custom-select-container dashboard-select-container">
       <div 
         className={`custom-select-trigger ${isFormInput ? "dashboard-select-trigger-form" : "dashboard-select-trigger-filter"} ${isOpen ? "open" : ""} ${selectedOption && selectedOption.value !== "" ? "has-value" : ""}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => {
+          if (isOpen) {
+            closeDropdown();
+          } else {
+            setIsOpen(true);
+          }
+        }}
       >
         <span>{selectedOption ? selectedOption.label : placeholder}</span>
         <svg 
@@ -41,14 +56,14 @@ function CustomSelect({ value, onChange, options, placeholder, isFormInput = fal
         </svg>
       </div>
       {isOpen && (
-        <div className="custom-select-options dashboard-select-options">
+        <div className={`custom-select-options dashboard-select-options ${isClosing ? "closing" : ""}`}>
           {options.map((option) => (
             <div
               key={option.value}
               className={`custom-select-option dashboard-select-option ${String(value) === String(option.value) ? "selected" : ""}`}
               onClick={() => {
                 onChange(option.value);
-                setIsOpen(false);
+                closeDropdown();
               }}
             >
               <span>{option.label}</span>
@@ -97,6 +112,19 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
   });
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [closingModal, setClosingModal] = useState("");
+  
+  const closeModal = (modalType) => {
+    setClosingModal(modalType);
+    setTimeout(() => {
+      if (modalType === "task") setShowTaskModal(false);
+      else if (modalType === "detail") setShowDetailModal(false);
+      else if (modalType === "category") setShowCategoryModal(false);
+      else if (modalType === "confirm") setConfirmModal(prev => ({ ...prev, show: false }));
+      setClosingModal("");
+    }, 300);
+  };
+
   const [toast, setToast] = useState({ show: false, message: "", type: "success" });
   const showToast = (message, type = "success") => {
     setToast({ show: true, message, type });
@@ -225,7 +253,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
       if (!res.ok) throw new Error("Gagal menyimpan tugas.");
 
-      setShowTaskModal(false);
+      closeModal("task");
       await fetchTasks();
       showToast(editingTask ? "Tugas berhasil diperbarui!" : "Tugas baru berhasil ditambahkan!", "success");
     } catch (err) {
@@ -326,7 +354,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
       });
 
       if (res.ok) {
-        setShowDetailModal(false);
+        closeModal("detail");
         await fetchTasks();
         showToast("Tugas dipindahkan ke keranjang sampah", "success");
       }
@@ -817,7 +845,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
         {/* MODAL: ADD / EDIT TASK */}
         {showTaskModal && (
-          <div className="modal-overlay active">
+          <div className={`modal-overlay active ${closingModal === "task" ? "closing" : ""}`}>
             <div className="modal-content">
               <div className="modal-header">
                 <div className="modal-title">
@@ -826,7 +854,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 <button
                   type="button"
                   className="btn-close-modal dashboard-modal-close"
-                  onClick={() => setShowTaskModal(false)}
+                  onClick={() => closeModal("task")}
                 >
                   &times;
                 </button>
@@ -905,7 +933,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                   <button
                     type="button"
                     className="btn-batal"
-                    onClick={() => setShowTaskModal(false)}
+                    onClick={() => closeModal("task")}
                     disabled={taskSubmitting}
                   >
                     Batal
@@ -921,14 +949,14 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
         {/* MODAL: DETAIL VIEW */}
         {showDetailModal && selectedTask && (
-          <div className="modal-overlay active">
+          <div className={`modal-overlay active ${closingModal === "detail" ? "closing" : ""}`}>
             <div className="modal-content">
               <div className="modal-header">
                 <div className="modal-title">Detail Tugas</div>
                 <button
                   type="button"
                   className="btn-close-modal dashboard-modal-close"
-                  onClick={() => setShowDetailModal(false)}
+                  onClick={() => closeModal("detail")}
                 >
                   &times;
                 </button>
@@ -1013,7 +1041,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 <button
                   type="button"
                   className="btn-batal"
-                  onClick={() => setShowDetailModal(false)}
+                  onClick={() => closeModal("detail")}
                 >
                   Tutup
                 </button>
@@ -1024,7 +1052,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
 
         {/* MODAL: ADD CUSTOM CATEGORY */}
         {showCategoryModal && (
-          <div className="modal-overlay active">
+          <div className={`modal-overlay active ${closingModal === "category" ? "closing" : ""}`}>
             <div className="modal-content" style={{ maxWidth: "420px" }}>
               <div className="modal-header">
                 <div className="modal-title">Kelola Kategori</div>
@@ -1032,7 +1060,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                   type="button"
                   className="btn-close-modal dashboard-modal-close"
                   onClick={() => {
-                    setShowCategoryModal(false);
+                    closeModal("category");
                     setCategoryName("");
                     setEditingCategory(null);
                   }}
@@ -1126,7 +1154,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                     type="button"
                     className="btn-batal dashboard-manage-cats-footer-btn"
                     onClick={() => {
-                      setShowCategoryModal(false);
+                      closeModal("category");
                       setCategoryName("");
                       setEditingCategory(null);
                     }}
@@ -1140,7 +1168,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
         )}
         {/* CUSTOM CONFIRMATION MODAL */}
         {confirmModal.show && (
-          <div className="modal-overlay active" style={{ zIndex: 200 }}>
+          <div className={`modal-overlay active ${closingModal === "confirm" ? "closing" : ""}`} style={{ zIndex: 200 }}>
             <div className="modal-content" style={{ maxWidth: "420px" }}>
               <div className="modal-header">
                 <div className={`modal-title ${confirmModal.isDanger ? "dashboard-detail-item-full text-danger" : ""}`}>
@@ -1149,7 +1177,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                 <button
                   type="button"
                   className="btn-close-modal dashboard-modal-close"
-                  onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                  onClick={() => closeModal("confirm")}
                 >
                   &times;
                 </button>
@@ -1167,7 +1195,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                       className="btn-hapus-modal dashboard-cat-del-btn-option"
                       onClick={() => {
                         if (confirmModal.onDeleteTasks) confirmModal.onDeleteTasks();
-                        setConfirmModal({ ...confirmModal, show: false });
+                        closeModal("confirm");
                       }}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ fill: "none" }}>
@@ -1180,7 +1208,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                       className="btn-hapus-modal dashboard-cat-del-btn-option"
                       onClick={() => {
                         if (confirmModal.onKeepTasks) confirmModal.onKeepTasks();
-                        setConfirmModal({ ...confirmModal, show: false });
+                        closeModal("confirm");
                       }}
                       style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}
                     >
@@ -1192,7 +1220,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                     <button
                       type="button"
                       className="btn-batal dashboard-cat-del-btn-cancel"
-                      onClick={() => setConfirmModal({ ...confirmModal, show: false })}
+                      onClick={() => closeModal("confirm")}
                     >
                       Batal
                     </button>
@@ -1204,7 +1232,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                       className="btn-batal"
                       onClick={() => {
                         if (confirmModal.onCancel) confirmModal.onCancel();
-                        setConfirmModal({ ...confirmModal, show: false });
+                        closeModal("confirm");
                       }}
                       style={{ margin: 0, padding: "10px 20px" }}
                     >
@@ -1215,7 +1243,7 @@ export default function Dashboard({ token, user, onLogout, onNavigateReport, onN
                       className={confirmModal.isDanger ? "btn-hapus-modal" : "btn-simpan"}
                       onClick={() => {
                         if (confirmModal.onConfirm) confirmModal.onConfirm();
-                        setConfirmModal({ ...confirmModal, show: false });
+                        closeModal("confirm");
                       }}
                       style={{ margin: 0, padding: "10px 24px", display: "inline-flex", gap: "6px", alignItems: "center", justifyContent: "center" }}
                     >

@@ -11,7 +11,7 @@
     --border-color: #f1f5f9;
     --input-border: #e2e8f0;
     --input-focus: #cbd5e1;
-    
+
     /* Badges */
     --badge-low-bg: #e8fbf1;
     --badge-low-text: #107e46;
@@ -41,7 +41,10 @@ body {
     min-height: 100vh;
 }
 
-input, button, textarea, select {
+input,
+button,
+textarea,
+select {
     font-family: inherit;
 }
 
@@ -96,37 +99,37 @@ input, button, textarea, select {
 }
 
 .logo-icon {
-  width: 48px;
-  height: 48px;
-  background: linear-gradient(135deg, #4f46e5, #7c3aed);
-  border-radius: 9999px;
+    width: 48px;
+    height: 48px;
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    border-radius: 9999px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  margin: 0 auto 16px;
+    margin: 0 auto 16px;
 
-  box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+    box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
 }
 
 .logo-inner {
-  width: 24px;
-  height: 24px;
+    width: 24px;
+    height: 24px;
 
-  border: 3px solid white;
-  border-radius: 9999px;
+    border: 3px solid white;
+    border-radius: 9999px;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .check-icon {
-  width: 16px;
-  height: 16px;
-  color: white;
-  align-items: center;
+    width: 16px;
+    height: 16px;
+    color: white;
+    align-items: center;
 }
 
 .auth-header h1 {
@@ -453,12 +456,12 @@ input, button, textarea, select {
     justify-content: space-between;
     align-items: flex-start;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
 }
 
 .task-item:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
 }
 
 .task-left {
@@ -557,6 +560,38 @@ input, button, textarea, select {
 }
 
 /* MODAL SYSTEM */
+@keyframes modalEnterFade {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes modalExitFade {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes modalEnterContent {
+    from {
+        opacity: 0;
+        transform: scale(0.95) translateY(15px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes modalExitContent {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95) translateY(15px);
+    }
+}
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -577,6 +612,12 @@ input, button, textarea, select {
 .modal-overlay.active {
     opacity: 1;
     pointer-events: auto;
+    animation: modalEnterFade 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.modal-overlay.active.closing {
+    pointer-events: none;
+    animation: modalExitFade 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .modal-content {
@@ -595,6 +636,11 @@ input, button, textarea, select {
 .modal-overlay.active .modal-content {
     transform: scale(1) translateY(0);
     opacity: 1;
+    animation: modalEnterContent 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.modal-overlay.active.closing .modal-content {
+    animation: modalExitContent 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
 .modal-header {
@@ -763,8 +809,13 @@ input, button, textarea, select {
 }
 
 @keyframes spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-spinner .opacity-25 {
@@ -1183,7 +1234,7 @@ input, button, textarea, select {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.01);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.01);
 }
 
 .category-admin-left {
@@ -1270,7 +1321,8 @@ input, button, textarea, select {
     transform: translate(-50%, -20px) scale(0.95);
     padding: 16px 28px;
     border-radius: 12px;
-    background: #ffffff; /* Putih polos */
+    background: #ffffff;
+    /* Putih polos */
     box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.15), 0 4px 12px -4px rgba(0, 0, 0, 0.08);
     border: 1px solid var(--primary-color);
     display: flex;
@@ -1282,7 +1334,8 @@ input, button, textarea, select {
     opacity: 0;
     pointer-events: none;
     transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-    color: #1e293b; /* Dark text */
+    color: #1e293b;
+    /* Dark text */
 }
 
 .toast-notification.active {
@@ -1314,59 +1367,74 @@ input, button, textarea, select {
         margin: 12px auto;
         padding: 0 12px 20px;
     }
+
     .board-card {
         padding: 16px;
         border-radius: 12px;
     }
+
     .progress-banner {
         padding: 16px;
         border-radius: 12px;
         margin-bottom: 16px;
     }
+
     .dashboard-navbar {
         padding: 10px 16px;
     }
+
     .navbar-title {
         font-size: 16px;
     }
+
     .navbar-subtitle {
         font-size: 11px;
     }
+
     .btn-logout {
         padding: 6px 10px;
         font-size: 13px;
     }
+
     .modal-content {
         width: 95%;
         border-radius: 16px;
     }
+
     .modal-header {
         padding: 16px 20px;
     }
+
     .modal-body {
         padding: 16px 20px;
         max-height: 60vh;
     }
+
     .modal-footer {
         padding: 12px 20px;
     }
+
     .detail-grid {
         grid-template-columns: 1fr;
         gap: 12px;
     }
+
     .btn-group-row {
         display: grid;
         grid-template-columns: 1fr 1fr;
         width: 100%;
         gap: 8px;
     }
-    .btn-group-row button, .btn-group-row a {
+
+    .btn-group-row button,
+    .btn-group-row a {
         width: 100%;
         justify-content: center;
         padding: 10px 8px;
         font-size: 13px;
         margin: 0 !important;
     }
+
     /* Override for Navbar to keep buttons inline horizontally */
     .dashboard-navbar .btn-group-row,
     .dashboard-navbar .admin-dash-header-row {
@@ -1375,15 +1443,19 @@ input, button, textarea, select {
         width: auto !important;
         gap: 8px !important;
     }
+
     .dashboard-navbar .navbar-subtitle {
         display: none !important;
     }
+
     .dashboard-navbar .navbar-brand {
         gap: 8px !important;
     }
+
     .dashboard-navbar .nav-btn-text {
         display: none !important;
     }
+
     .dashboard-navbar button,
     .dashboard-navbar .btn-secondary,
     .dashboard-navbar .btn-logout,
@@ -1400,6 +1472,7 @@ input, button, textarea, select {
         border-radius: 50% !important;
         box-shadow: none !important;
     }
+
     .dashboard-navbar .btn-secondary img {
         width: 22px !important;
         height: 22px !important;
@@ -1411,13 +1484,16 @@ input, button, textarea, select {
         padding: 24px 16px;
         border-radius: 12px;
     }
+
     .auth-header h1 {
         font-size: 24px;
     }
+
     .auth-card h2 {
         font-size: 18px;
         margin-bottom: 16px;
     }
+
     .toast-notification {
         top: 16px;
         left: 50%;
@@ -1426,4 +1502,4 @@ input, button, textarea, select {
         padding: 12px 20px;
         border-radius: 8px;
     }
-}
+}
