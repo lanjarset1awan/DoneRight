@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../style/pages/Login.css";
+import "../styles/login.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -19,13 +19,19 @@ export default function ResetPassword({ resetToken, onNavigateLogin }) {
       return;
     }
 
-    if (password !== confirmPassword) {
-      setErrorMsg("Password baru dan konfirmasi password tidak cocok!");
+    if (password.length < 8) {
+      setErrorMsg("Password baru harus minimal 8 karakter!");
       return;
     }
 
-    if (password.length < 6) {
-      setErrorMsg("Password harus minimal 6 karakter!");
+    const hasSpecialChar = /[^a-zA-Z0-9]/.test(password);
+    if (!hasSpecialChar) {
+      setErrorMsg("Password baru harus mengandung minimal 1 karakter unik/spesial!");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setErrorMsg("Password baru dan konfirmasi password tidak cocok!");
       return;
     }
 
@@ -106,12 +112,12 @@ export default function ResetPassword({ resetToken, onNavigateLogin }) {
 
               <div className="form-group">
                 <label htmlFor="password">Password Baru</label>
-                <div className="auth-password-container">
+                <div className="auth-password-container" style={{ marginBottom: password ? "10px" : "20px" }}>
                   <input
                     type={passwordVisible ? "text" : "password"}
                     id="password"
                     className="form-input"
-                    placeholder="Minimal 6 karakter"
+                    placeholder="Minimal 8 karakter dengan 1 karakter unik"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -135,11 +141,29 @@ export default function ResetPassword({ resetToken, onNavigateLogin }) {
                     )}
                   </button>
                 </div>
+                {/* PASSWORD REQUIREMENTS REAL-TIME INDICATOR */}
+                {password && (
+                  <div className="password-checker-container">
+                    <div className="password-checker-title">Persyaratan Kata Sandi:</div>
+                    <div className={`password-checker-item ${password.length >= 8 ? "is-valid" : "is-invalid"}`}>
+                      <span className="checker-icon">
+                        {password.length >= 8 ? "✓" : "○"}
+                      </span>
+                      <span>Minimal 8 karakter</span>
+                    </div>
+                    <div className={`password-checker-item ${/[^a-zA-Z0-9]/.test(password) ? "is-valid" : "is-invalid"}`}>
+                      <span className="checker-icon">
+                        {/[^a-zA-Z0-9]/.test(password) ? "✓" : "○"}
+                      </span>
+                      <span>Minimal 1 karakter unik/spesial (misal: @, #, $, !, dll)</span>
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="form-group">
                 <label htmlFor="confirmPassword">Konfirmasi Password Baru</label>
-                <div className="auth-password-container">
+                <div className="auth-password-container" style={{ marginBottom: password ? "10px" : "20px" }}>
                   <input
                     type={confirmPasswordVisible ? "text" : "password"}
                     id="confirmPassword"
@@ -148,13 +172,14 @@ export default function ResetPassword({ resetToken, onNavigateLogin }) {
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     required
-                    disabled={loading}
+                    disabled={loading || !password}
                   />
                   <button
                     type="button"
                     className="auth-eye-btn"
                     onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
                     title={confirmPasswordVisible ? "Sembunyikan" : "Tampilkan"}
+                    disabled={!password}
                   >
                     {confirmPasswordVisible ? (
                       <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -168,6 +193,27 @@ export default function ResetPassword({ resetToken, onNavigateLogin }) {
                     )}
                   </button>
                 </div>
+                {/* CONFIRMATION MATCH STATUS */}
+                {password && (
+                  <div className="password-confirm-status">
+                    {!confirmPassword ? (
+                      <div className="confirm-status-item is-warning">
+                        <span className="status-icon">⚠</span>
+                        <span>Konfirmasi kata sandi belum diisi</span>
+                      </div>
+                    ) : confirmPassword !== password ? (
+                      <div className="confirm-status-item is-invalid">
+                        <span className="status-icon">✗</span>
+                        <span>Konfirmasi kata sandi tidak cocok</span>
+                      </div>
+                    ) : (
+                      <div className="confirm-status-item is-valid">
+                        <span className="status-icon">✓</span>
+                        <span>Konfirmasi kata sandi cocok</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <button type="submit" className="btn-primary auth-submit-btn" disabled={loading}>

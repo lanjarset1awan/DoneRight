@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../style/pages/Login.css"; // Reuse login stylesheet for styling consistency
+import "../styles/login.css"; // Reuse login stylesheet for styling consistency
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 

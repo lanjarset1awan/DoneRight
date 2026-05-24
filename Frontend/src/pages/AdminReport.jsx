@@ -1,79 +1,70 @@
-/* eslint-disable react-hooks/set-state-in-effect */
-import { useState, useEffect } from "react";
+import React from "react";
 import Navbar from "../components/Navbar";
-import "../style/pages/AdminReport.css";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+import useAdminReportData from "../hooks/useAdminReportData";
+import ReportBanner from "../components/report/ReportBanner";
+import ReportStatsGrid from "../components/report/ReportStatsGrid";
+import ReportActions from "../components/report/ReportActions";
+import "../styles/pages/report-detail.css";
 
 export default function AdminReport({ token, user, onLogout, onNavigateDashboard, onOpenProfile }) {
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [downloading, setDownloading] = useState(false);
-  const [toast, setToast] = useState({ show: false, message: "", type: "success" });
-  const showToast = (message, type = "success") => {
-    setToast({ show: true, message, type });
-    setTimeout(() => {
-      setToast({ show: false, message: "", type: "success" });
-    }, 4000);
-  };
+  const {
+    stats,
+    loading,
+    downloading,
+    toast,
+    handleDownloadPDF,
+    total,
+    completed,
+    overdueCount,
+    completionRate
+  } = useAdminReportData(token);
 
-  const fetchGlobalReport = async () => {
-    try {
-      const statsRes = await fetch(`${BASE_URL}/statistics/global`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (statsRes.ok) {
-        const statsData = await statsRes.json();
-        setStats(statsData);
-      }
-    } catch (err) {
-      console.error("Fetch report error:", err);
-    } finally {
-      setLoading(false);
+  const statsCards = stats ? [
+    {
+      label: "Total Pengguna",
+      value: stats.total_users || 0,
+      subLabel: "User terdaftar",
+      iconClass: "icon-blue",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      )
+    },
+    {
+      label: "Total Semua Tugas",
+      value: total,
+      subLabel: "Seluruh tugas pengguna",
+      iconClass: "icon-blue",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+        </svg>
+      )
+    },
+    {
+      label: "Tugas Selesai",
+      value: completed,
+      subLabel: "Berhasil diselesaikan",
+      iconClass: "icon-green",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      )
+    },
+    {
+      label: "Tugas Overdue",
+      value: overdueCount,
+      subLabel: "Tugas yang terlambat",
+      iconClass: "icon-red",
+      icon: (
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+      )
     }
-  };
-
-  useEffect(() => {
-    fetchGlobalReport();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const handleDownloadPDF = async () => {
-    setDownloading(true);
-    try {
-      const res = await fetch(`${BASE_URL}/statistics/pdf/global`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) {
-        showToast("Gagal mengunduh laporan PDF", "error");
-        setDownloading(false);
-        return;
-      }
-      
-      const blob = await res.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `Laporan_Sistem_${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      a.remove();
-      showToast("Laporan PDF berhasil diunduh!", "success");
-    } catch (err) {
-      console.error("Global PDF download error:", err);
-      showToast("Gagal mengunduh laporan PDF global.", "error");
-    } finally {
-      setDownloading(false);
-    }
-  };
-
-  const total = stats ? Number(stats.total_tasks) || 0 : 0;
-  const completed = stats ? Number(stats.completed_tasks) || 0 : 0;
-  const onTime = stats ? Number(stats.on_time) || 0 : 0;
-  const overdueCount = stats ? Number(stats.overdue) || 0 : 0;
-  const completionRate = total > 0 ? Math.round((onTime / total) * 100) : 0;
-
+  ] : [];
 
   return (
     <div>
@@ -130,97 +121,36 @@ export default function AdminReport({ token, user, onLogout, onNavigateDashboard
         ) : (
           <div className="report-content active">
             {/* BIG BANNER */}
-            <div className="big-productivity-card admin-report-banner-card">
-              <div className="big-prod-label admin-report-banner-label">Global Productivity Rate Sistem</div>
-              <div className="big-prod-value admin-report-banner-value">{completionRate}%</div>
-              <div className="progress-bar-container admin-report-progress-container">
-                <div className="progress-bar-fill admin-report-progress-fill" style={{ width: `${completionRate}%` }}></div>
-              </div>
-            </div>
+            <ReportBanner
+              label="Global Productivity Rate Sistem"
+              value={completionRate}
+              percent={completionRate}
+              cardClass="admin-report-banner-card"
+              labelClass="admin-report-banner-label"
+              valueClass="admin-report-banner-value"
+              containerClass="admin-report-progress-container"
+              fillClass="admin-report-progress-fill"
+            />
 
             {/* STATS GRID */}
-            <div className="admin-stats-grid admin-report-stats-grid">
-              <div className="admin-stat-card">
-                <div className="admin-stat-left">
-                  <span className="admin-stat-label">Total Pengguna</span>
-                  <span className="admin-stat-value">{stats.total_users || 0}</span>
-                  <span className="admin-stat-sub">User terdaftar</span>
-                </div>
-                <div className="admin-stat-icon-circle icon-blue">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a3 3 0 11-6 0 3 3 0 016 0z" />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="admin-stat-card">
-                <div className="admin-stat-left">
-                  <span className="admin-stat-label">Total Semua Tugas</span>
-                  <span className="admin-stat-value">{total}</span>
-                  <span className="admin-stat-sub">Seluruh tugas pengguna</span>
-                </div>
-                <div className="admin-stat-icon-circle icon-blue">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="admin-stat-card">
-                <div className="admin-stat-left">
-                  <span className="admin-stat-label">Tugas Selesai</span>
-                  <span className="admin-stat-value">{completed}</span>
-                  <span className="admin-stat-sub">Berhasil diselesaikan</span>
-                </div>
-                <div className="admin-stat-icon-circle icon-green">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-              </div>
-
-              <div className="admin-stat-card">
-                <div className="admin-stat-left">
-                  <span className="admin-stat-label">Tugas Overdue</span>
-                  <span className="admin-stat-value">{overdueCount}</span>
-                  <span className="admin-stat-sub">Tugas yang terlambat</span>
-                </div>
-                <div className="admin-stat-icon-circle icon-red">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                  </svg>
-                </div>
-              </div>
-            </div>
+            <ReportStatsGrid
+              cards={statsCards}
+              gridClass="admin-report-stats-grid"
+            />
 
             {/* ACTION CARD */}
-            <div className="report-action-card admin-report-action-card">
-              <h3 className="admin-report-action-title">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="var(--primary-color)" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-                Unduh Laporan Global Format PDF
-              </h3>
-              <p className="admin-report-action-desc">
-                Dapatkan dokumen laporan PDF global resmi yang memuat rangkuman statistik pengguna, tugas, dan tingkat penyelesaian tepat waktu di seluruh sistem.
-              </p>
-              <button
-                className="btn-primary admin-report-btn-download"
-                onClick={handleDownloadPDF}
-                disabled={downloading}
-              >
-                {downloading ? (
-                  "Mengunduh PDF Global..."
-                ) : (
-                  <>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    Unduh Laporan PDF Global
-                  </>
-                )}
-              </button>
-            </div>
+            <ReportActions
+              title="Unduh Laporan Global Format PDF"
+              description="Dapatkan dokumen laporan PDF global resmi yang memuat rangkuman statistik pengguna, tugas, dan tingkat penyelesaian tepat waktu di seluruh sistem."
+              onDownload={handleDownloadPDF}
+              downloading={downloading}
+              downloadingText="Mengunduh PDF Global..."
+              buttonText="Unduh Laporan PDF Global"
+              cardClass="admin-report-action-card"
+              titleClass="admin-report-action-title"
+              descClass="admin-report-action-desc"
+              btnClass="admin-report-btn-download"
+            />
           </div>
         )}
       </div>

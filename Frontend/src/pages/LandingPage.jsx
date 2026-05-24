@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import "../style/pages/LandingPage.css";
+import "../styles/dashboard.css";
 
 export default function LandingPage({ onNavigateLogin, onNavigateRegister }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -123,7 +123,7 @@ export default function LandingPage({ onNavigateLogin, onNavigateRegister }) {
           <h2 className="section-title">Semua alat untuk bekerja lebih cerdas</h2>
           <p className="section-subtitle">Didesain khusus untuk mahasiswa, profesional, dan tim yang ingin menyelesaikan lebih banyak hal dalam waktu yang lebih singkat.</p>
         </div>
-        
+
         <div className="features-grid">
           <div className="feature-card">
             <div className="feature-icon feature-icon-purple">
@@ -193,14 +193,14 @@ export default function LandingPage({ onNavigateLogin, onNavigateRegister }) {
       <footer id="footer" className="landing-footer">
         <div className="footer-content-simple">
           <div className="footer-logo">
-             <div className="logo-icon" style={{ width: "24px", height: "24px", marginBottom: "0", boxShadow: "none" }}>
-               <div className="logo-inner" style={{ width: "12px", height: "12px", borderWidth: "1.5px" }}>
-                 <svg xmlns="http://www.w3.org/2000/svg" className="check-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                 </svg>
-               </div>
-             </div>
-             <h2>DoneRight</h2>
+            <div className="logo-icon" style={{ width: "24px", height: "24px", marginBottom: "0", boxShadow: "none" }}>
+              <div className="logo-inner" style={{ width: "12px", height: "12px", borderWidth: "1.5px" }}>
+                <svg xmlns="http://www.w3.org/2000/svg" className="check-icon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            <h2>DoneRight</h2>
           </div>
           <p>Sistem manajemen tugas mahasiswa yang cerdas dan terstruktur.</p>
           <div className="footer-links-simple">

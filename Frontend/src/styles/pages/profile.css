@@ -19,7 +19,7 @@
     max-width: 480px;
     text-align: center;
     margin: auto;
-    animation: profileModalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    animation: profileModalSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes profileModalSlideUp {
@@ -420,3 +420,94 @@
     }
 }
 
+/* Password Checker Styles */
+.password-checker-container {
+    background-color: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: -4px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.password-checker-title {
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 6px;
+    font-size: 12px;
+}
+
+.password-checker-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+    line-height: 1.4;
+    transition: color 0.2s ease;
+}
+
+.password-checker-item:last-child {
+    margin-bottom: 0;
+}
+
+.password-checker-item.is-valid {
+    color: #10b981;
+    font-weight: 500;
+}
+
+.password-checker-item.is-invalid {
+    color: #94a3b8;
+}
+
+.password-checker-item .checker-icon {
+    font-weight: 700;
+    width: 14px;
+    display: inline-flex;
+    justify-content: center;
+}
+
+/* Password Confirm Status Styles */
+.password-confirm-status {
+    margin-top: -4px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    animation: fadeIn 0.2s ease-in-out;
+}
+
+.confirm-status-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 500;
+    line-height: 1.4;
+}
+
+.confirm-status-item.is-warning {
+    color: #d97706; /* Amber-600 */
+}
+
+.confirm-status-item.is-invalid {
+    color: #ef4444; /* Red-500 */
+}
+
+.confirm-status-item.is-valid {
+    color: #10b981; /* Green-500 */
+}
+
+.confirm-status-item .status-icon {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

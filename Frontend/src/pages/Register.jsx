@@ -1,5 +1,5 @@
 import { useState } from "react";
-import "../style/pages/Register.css";
+import "../styles/register.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
@@ -141,7 +141,7 @@ export default function Register({ onNavigateLogin }) {
 
             <div className="form-group">
               <label htmlFor="password">Password</label>
-              <div className="auth-password-container">
+              <div className="auth-password-container" style={{ marginBottom: password ? "10px" : "20px" }}>
                 <input
                   type={passwordVisible ? "text" : "password"}
                   id="password"
@@ -170,11 +170,29 @@ export default function Register({ onNavigateLogin }) {
                   )}
                 </button>
               </div>
+              {/* PASSWORD REQUIREMENTS REAL-TIME INDICATOR */}
+              {password && (
+                <div className="password-checker-container">
+                  <div className="password-checker-title">Persyaratan Kata Sandi:</div>
+                  <div className={`password-checker-item ${password.length >= 8 ? "is-valid" : "is-invalid"}`}>
+                    <span className="checker-icon">
+                      {password.length >= 8 ? "✓" : "○"}
+                    </span>
+                    <span>Minimal 8 karakter</span>
+                  </div>
+                  <div className={`password-checker-item ${/[^a-zA-Z0-9]/.test(password) ? "is-valid" : "is-invalid"}`}>
+                    <span className="checker-icon">
+                      {/[^a-zA-Z0-9]/.test(password) ? "✓" : "○"}
+                    </span>
+                    <span>Minimal 1 karakter unik/spesial (misal: @, #, $, !, dll)</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="form-group">
               <label htmlFor="confirmPassword">Konfirmasi Password</label>
-              <div className="auth-password-container">
+              <div className="auth-password-container" style={{ marginBottom: password ? "10px" : "20px" }}>
                 <input
                   type={confirmPasswordVisible ? "text" : "password"}
                   id="confirmPassword"
@@ -182,13 +200,14 @@ export default function Register({ onNavigateLogin }) {
                   placeholder="Masukkan ulang password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={loading}
+                  disabled={loading || !password}
                 />
                 <button
                   type="button"
                   className="auth-eye-btn"
                   onClick={() => setConfirmPasswordVisible(!confirmPasswordVisible)}
                   title={confirmPasswordVisible ? "Sembunyikan" : "Tampilkan"}
+                  disabled={!password}
                 >
                   {confirmPasswordVisible ? (
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -202,6 +221,27 @@ export default function Register({ onNavigateLogin }) {
                   )}
                 </button>
               </div>
+              {/* CONFIRMATION MATCH STATUS */}
+              {password && (
+                <div className="password-confirm-status">
+                  {!confirmPassword ? (
+                    <div className="confirm-status-item is-warning">
+                      <span className="status-icon">⚠</span>
+                      <span>Konfirmasi kata sandi belum diisi</span>
+                    </div>
+                  ) : confirmPassword !== password ? (
+                    <div className="confirm-status-item is-invalid">
+                      <span className="status-icon">✗</span>
+                      <span>Konfirmasi kata sandi tidak cocok</span>
+                    </div>
+                  ) : (
+                    <div className="confirm-status-item is-valid">
+                      <span className="status-icon">✓</span>
+                      <span>Konfirmasi kata sandi cocok</span>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
 

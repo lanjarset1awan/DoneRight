@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-
-const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
+import useNotifications from "../hooks/useNotifications";
 
 export default function Navbar({
   token,
@@ -16,7 +15,13 @@ export default function Navbar({
   setSelectedTask,
   setShowDetailModal,
 }) {
-  const [notifications, setNotifications] = useState([]);
+  const {
+    notifications,
+    unreadCount,
+    handleReadNotif,
+    handleReadAllNotifs
+  } = useNotifications(token, showNotifBell);
+
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
   const [isNotifClosing, setIsNotifClosing] = useState(false);
   const notifDropdownRef = useRef(null);
@@ -32,25 +37,7 @@ export default function Navbar({
     }, 190);
   };
 
-  const fetchNotifications = async () => {
-    if (!token || !showNotifBell) return;
-    try {
-      const res = await fetch(`${BASE_URL}/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-      }
-    } catch (err) {
-      console.error("Notifications fetch error:", err);
-    }
-  };
-
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchNotifications();
-
     function handleClickOutside(event) {
       if (notifDropdownRef.current && !notifDropdownRef.current.contains(event.target)) {
         if (showNotifDropdownRef.current) closeNotifDropdown();
@@ -59,37 +46,8 @@ export default function Navbar({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [token, showNotifBell]);
+  }, []);
 
-  const handleReadNotif = async (id) => {
-    try {
-      const res = await fetch(`${BASE_URL}/notifications/${id}/read`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => n.id_notifications === id ? { ...n, is_read: true } : n));
-      }
-    } catch (err) {
-      console.error("Read notification error:", err);
-    }
-  };
-
-  const handleReadAllNotifs = async () => {
-    try {
-      const res = await fetch(`${BASE_URL}/notifications/read-all`, {
-        method: "PATCH",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      });
-      if (res.ok) {
-        setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      }
-    } catch (err) {
-      console.error("Read all notifications error:", err);
-    }
-  };
-
-  const unreadCount = notifications.filter(n => !n.is_read).length;
   const formatTimeAgo = (dateStr) => {
     const now = new Date();
     const date = new Date(dateStr);
@@ -182,7 +140,7 @@ export default function Navbar({
                 <div className="notif-dropdown-list">
                   {notifications.length === 0 ? (
                     <div className="notif-empty-state">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="notif-empty-icon-svg">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="notif-empty-icon-svg">
                         <path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5"/>
                         <path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7"/>
                         <path d="M10.3 21a1.94 1.94 0 0 0 3.4-.4"/>
