@@ -4,15 +4,19 @@ import pool from "../config/db.js";
 export const createUser = async (
     username,
     email,
-    passwordHash
+    passwordHash,
+    verificationToken = null,
+    verificationTokenExpires = null
 ) => {
     const query = `
     INSERT INTO users (
       username,
       email,
-      password_hash
+      password_hash,
+      verification_token,
+      verification_token_expires
     )
-    VALUES ($1, $2, $3)
+    VALUES ($1, $2, $3, $4, $5)
     RETURNING
       id_users,
       username,
@@ -25,6 +29,8 @@ export const createUser = async (
         username,
         email,
         passwordHash,
+        verificationToken,
+        verificationTokenExpires,
     ];
 
     const result = await pool.query(

@@ -39,6 +39,21 @@ pool.query("SELECT NOW()")
             await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255)");
             await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMP");
             
+            // Migration for email verification columns
+            const checkCol = await pool.query(`
+                SELECT column_name 
+                FROM information_schema.columns 
+                WHERE table_name='users' AND column_name='is_verified'
+            `);
+            if (checkCol.rows.length === 0) {
+                // To avoid locking out existing users, set default to TRUE for existing records
+                await pool.query("ALTER TABLE users ADD COLUMN is_verified BOOLEAN DEFAULT TRUE");
+                // For future inserts, change default to FALSE
+                await pool.query("ALTER TABLE users ALTER COLUMN is_verified SET DEFAULT FALSE");
+            }
+            await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token VARCHAR(255)");
+            await pool.query("ALTER TABLE users ADD COLUMN IF NOT EXISTS verification_token_expires TIMESTAMP");
+            
             // Create notifications table if it doesn't exist
             await pool.query(`
                 CREATE TABLE IF NOT EXISTS notifications (

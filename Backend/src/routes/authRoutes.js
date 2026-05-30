@@ -5,6 +5,7 @@ import {
     login,
     forgotPassword,
     resetPassword,
+    verifyEmail,
 } from "../controllers/authController.js";
 
 const router =
@@ -18,6 +19,11 @@ router.post(
 router.post(
     "/login",
     login
+);
+
+router.get(
+    "/verify-email",
+    verifyEmail
 );
 
 router.post(

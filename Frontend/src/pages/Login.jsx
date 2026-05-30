@@ -3,7 +3,7 @@ import "../styles/login.css";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api";
 
-export default function Login({ onLoginSuccess, onNavigateRegister, onNavigateForgotPassword }) {
+export default function Login({ onLoginSuccess, onNavigateRegister, onNavigateForgotPassword, verificationSuccess }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [passwordVisible, setPasswordVisible] = useState(false);
@@ -76,6 +76,12 @@ export default function Login({ onLoginSuccess, onNavigateRegister, onNavigateFo
           {errorMsg && (
             <div className="auth-error-msg">
               ⚠ {errorMsg}
+            </div>
+          )}
+
+          {verificationSuccess && !errorMsg && (
+            <div style={{ color: "#10b981", background: "#ecfdf5", border: "1px solid #a7f3d0", padding: "12px 16px", borderRadius: "10px", fontSize: "13px", marginBottom: "16px", fontWeight: 500, lineHeight: "1.5" }}>
+              ✓ Akun Anda berhasil diverifikasi! Silakan masuk menggunakan email dan password Anda.
             </div>
           )}
 

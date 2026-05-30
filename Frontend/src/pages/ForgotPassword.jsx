@@ -8,7 +8,6 @@ export default function ForgotPassword({ onNavigateLogin }) {
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
-  const [devResetUrl, setDevResetUrl] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -20,7 +19,6 @@ export default function ForgotPassword({ onNavigateLogin }) {
     setLoading(true);
     setErrorMsg("");
     setSuccessMsg("");
-    setDevResetUrl("");
 
     try {
       const response = await fetch(`${BASE_URL}/auth/forgot-password`, {
@@ -35,10 +33,7 @@ export default function ForgotPassword({ onNavigateLogin }) {
         throw new Error(data.message || "Gagal mengirim permintaan reset password.");
       }
 
-      setSuccessMsg(data.message || "Tautan reset password telah dibuat.");
-      if (data.devResetUrl) {
-        setDevResetUrl(data.devResetUrl);
-      }
+      setSuccessMsg(data.message || "Tautan reset password telah dikirim.");
     } catch (err) {
       console.error("Forgot password error:", err);
       setErrorMsg(err.message || "Terjadi kesalahan saat memproses permintaan.");
@@ -93,7 +88,7 @@ export default function ForgotPassword({ onNavigateLogin }) {
           {!successMsg ? (
             <form onSubmit={handleSubmit}>
               <p style={{ fontSize: "14px", color: "#64748b", marginBottom: "20px", lineHeight: "1.5" }}>
-                Masukkan email akun Anda. Kami akan membuat tautan reset password untuk Anda (mode pengembangan).
+                Masukkan email akun Anda. Kami akan mengirimkan tautan untuk mengatur ulang kata sandi ke email Anda.
               </p>
               
               <div className="form-group">
@@ -115,30 +110,8 @@ export default function ForgotPassword({ onNavigateLogin }) {
               </button>
             </form>
           ) : (
-            <div style={{ marginTop: "10px" }}>
-              {devResetUrl && (
-                <div style={{ background: "#f8fafc", padding: "16px", borderRadius: "10px", border: "1px solid #e2e8f0", marginBottom: "20px" }}>
-                  <p style={{ fontSize: "13px", fontWeight: "600", color: "#334155", marginBottom: "8px" }}>
-                    Tautan Reset Password (Dev Mode):
-                  </p>
-                  <a 
-                    href={devResetUrl} 
-                    style={{ fontSize: "13px", color: "#4f46e5", textDecoration: "underline", wordBreak: "break-all", display: "block", marginBottom: "12px" }}
-                  >
-                    {devResetUrl}
-                  </a>
-                  <button 
-                    type="button" 
-                    className="btn-primary auth-submit-btn"
-                    onClick={() => {
-                      window.location.href = devResetUrl;
-                    }}
-                    style={{ marginTop: "0" }}
-                  >
-                    Buka Halaman Reset Password
-                  </button>
-                </div>
-              )}
+            <div style={{ marginTop: "10px", color: "#64748b", fontSize: "14px", lineHeight: "1.5", marginBottom: "20px" }}>
+              Silakan periksa kotak masuk email Anda (termasuk folder spam jika diperlukan) dan klik tombol "Atur Ulang Kata Sandi" untuk melanjutkan.
             </div>
           )}
 

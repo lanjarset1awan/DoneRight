@@ -25,12 +25,20 @@ export default function App() {
     return params.get("resetToken") || "";
   });
 
+  const [verificationSuccess, setVerificationSuccess] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("verified") === "success";
+  });
+
   const [showProfileModal, setShowProfileModal] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("resetToken")) {
       return "reset-password";
+    }
+    if (params.get("verified") === "success") {
+      return "login";
     }
     const savedToken = localStorage.getItem("token");
     if (!savedToken) return "landing";
@@ -45,10 +53,10 @@ export default function App() {
     }
   });
 
-  // Clean up URL query parameters on mount if resetToken was present
+  // Clean up URL query parameters on mount if resetToken or verified was present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("resetToken")) {
+    if (params.get("resetToken") || params.get("verified")) {
       const newUrl = window.location.protocol + "//" + window.location.host + window.location.pathname;
       window.history.replaceState({ path: newUrl }, "", newUrl);
     }
@@ -106,27 +114,43 @@ export default function App() {
         return (
           <Login
             onLoginSuccess={handleLoginSuccess}
-            onNavigateRegister={() => setCurrentPage("register")}
-            onNavigateForgotPassword={() => setCurrentPage("forgot-password")}
+            onNavigateRegister={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("register");
+            }}
+            onNavigateForgotPassword={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("forgot-password");
+            }}
+            verificationSuccess={verificationSuccess}
           />
         );
       case "forgot-password":
         return (
           <ForgotPassword
-            onNavigateLogin={() => setCurrentPage("login")}
+            onNavigateLogin={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("login");
+            }}
           />
         );
       case "reset-password":
         return (
           <ResetPassword
             resetToken={resetToken}
-            onNavigateLogin={() => setCurrentPage("login")}
+            onNavigateLogin={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("login");
+            }}
           />
         );
       case "register":
         return (
           <Register
-            onNavigateLogin={() => setCurrentPage("login")}
+            onNavigateLogin={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("login");
+            }}
           />
         );
       case "dashboard":
@@ -185,8 +209,15 @@ export default function App() {
         return (
           <Login
             onLoginSuccess={handleLoginSuccess}
-            onNavigateRegister={() => setCurrentPage("register")}
-            onNavigateForgotPassword={() => setCurrentPage("forgot-password")}
+            onNavigateRegister={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("register");
+            }}
+            onNavigateForgotPassword={() => {
+              setVerificationSuccess(false);
+              setCurrentPage("forgot-password");
+            }}
+            verificationSuccess={verificationSuccess}
           />
         );
     }

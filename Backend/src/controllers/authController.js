@@ -7,6 +7,8 @@ import {
     createUser,
     findUserByEmail,
 } from "../models/userModel.js";
+import { isValidEmailDomain } from "../utils/emailValidator.js";
+import { sendEmail } from "../utils/emailSender.js";
 
 // REGISTER
 export const register = async (
@@ -32,6 +34,14 @@ export const register = async (
             });
         }
 
+        // 1. Verify email domain MX record to prevent fake emails
+        const emailValid = await isValidEmailDomain(email);
+        if (!emailValid) {
+            return res.status(400).json({
+                message: "Email Anda tidak valid atau tidak dapat menerima pesan. Silakan gunakan email lain.",
+            });
+        }
+
         // cek email sudah ada
         const existingUser =
             await findUserByEmail(email);
@@ -47,16 +57,75 @@ export const register = async (
         const hashedPassword =
             await bcrypt.hash(password, 10);
 
+        // Generate verification token
+        const verificationToken = crypto.randomBytes(32).toString("hex");
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(verificationToken)
+            .digest("hex");
+        const expires = new Date(Date.now() + 24 * 3600000); // 24 hours from now
+
         // create user
         const user = await createUser(
             username,
             email,
-            hashedPassword
+            hashedPassword,
+            hashedToken,
+            expires
         );
+
+        // Send verification email
+        const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
+        const verificationUrl = `${backendUrl}/api/auth/verify-email?token=${verificationToken}`;
+
+        const emailHtml = `
+<div style="font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #1e293b; line-height: 1.6;">
+  <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; overflow: hidden;">
+    <!-- Banner Header Gradient -->
+    <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 32px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">DoneRight</h1>
+      <p style="color: #c7d2fe; margin: 6px 0 0 0; font-size: 14px; font-weight: 500;">Sistem Manajemen Tugas Mahasiswa</p>
+    </div>
+    
+    <!-- Body Utama -->
+    <div style="padding: 40px 32px;">
+      <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Verifikasi Akun DoneRight Anda</h2>
+      <p style="font-size: 15px; color: #475569; margin-bottom: 24px;">Terima kasih telah mendaftar di DoneRight! Silakan klik tombol di bawah ini untuk mengaktifkan akun Anda:</p>
+      
+      <!-- Tombol Aksi Utama -->
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${verificationUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 30px; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 10px; display: inline-block; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); letter-spacing: -0.2px;">
+          Verifikasi Akun
+        </a>
+      </div>
+      
+      <p style="font-size: 13px; color: #64748b; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+        Tautan ini hanya berlaku selama <strong>24 jam</strong> demi keamanan akun Anda. Jika Anda tidak merasa melakukan pendaftaran ini, silakan abaikan email ini.
+      </p>
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="font-size: 12px; color: #94a3b8; margin: 0;">Email ini dikirim secara otomatis oleh sistem DoneRight.</p>
+      <p style="font-size: 12px; color: #94a3b8; margin: 8px 0 0 0;">&copy; 2026 DoneRight. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+        `;
+
+        try {
+            await sendEmail({
+                to: email,
+                subject: "Verifikasi Pendaftaran Akun - DoneRight",
+                html: emailHtml,
+            });
+        } catch (mailError) {
+            console.error("Failed to send verification email:", mailError.message);
+        }
 
         res.status(201).json({
             message:
-                "Register success",
+                "Registrasi sukses! Silakan periksa kotak masuk email Anda untuk memverifikasi akun Anda.",
             user,
         });
     } catch (error) {
@@ -103,6 +172,13 @@ export const login = async (
             });
         }
 
+        // Check if user is verified
+        if (!user.is_verified) {
+            return res.status(401).json({
+                message: "Akun Anda belum aktif. Silakan verifikasi email Anda terlebih dahulu.",
+            });
+        }
+
         const token = jwt.sign(
             {
                 id: user.id_users,
@@ -140,10 +216,18 @@ export const forgotPassword = async (req, res) => {
             });
         }
 
+        // 1. Verify email domain MX record to prevent fake emails
+        const emailValid = await isValidEmailDomain(email);
+        if (!emailValid) {
+            return res.status(400).json({
+                message: "Email Anda tidak valid atau tidak dapat menerima pesan. Silakan gunakan email lain.",
+            });
+        }
+
         const user = await findUserByEmail(email);
         if (!user) {
             return res.status(404).json({
-                message: "User with this email does not exist",
+                message: "User dengan email ini tidak ditemukan.",
             });
         }
 
@@ -165,15 +249,55 @@ export const forgotPassword = async (req, res) => {
         const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
         const resetUrl = `${frontendUrl}/?resetToken=${resetToken}`;
 
-        console.log("=========================================");
-        console.log("PASSWORD RESET REQUEST");
-        console.log(`Email: ${email}`);
-        console.log(`Reset URL: ${resetUrl}`);
-        console.log("=========================================");
+        // 2. Build email template
+        const emailHtml = `
+<div style="font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #1e293b; line-height: 1.6;">
+  <div style="max-width: 540px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.05); border: 1px solid #e2e8f0; overflow: hidden;">
+    <!-- Banner Header Gradient -->
+    <div style="background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); padding: 32px; text-align: center;">
+      <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px;">DoneRight</h1>
+      <p style="color: #c7d2fe; margin: 6px 0 0 0; font-size: 14px; font-weight: 500;">Sistem Manajemen Tugas Mahasiswa</p>
+    </div>
+    
+    <!-- Body Utama -->
+    <div style="padding: 40px 32px;">
+      <h2 style="font-size: 20px; font-weight: 700; color: #0f172a; margin-top: 0; margin-bottom: 16px;">Atur Ulang Kata Sandi Anda</h2>
+      <p style="font-size: 15px; color: #475569; margin-bottom: 24px;">Kami menerima permintaan untuk mengatur ulang kata sandi akun DoneRight Anda. Silakan klik tombol di bawah ini untuk membuat kata sandi baru:</p>
+      
+      <!-- Tombol Aksi Utama -->
+      <div style="text-align: center; margin: 32px 0;">
+        <a href="${resetUrl}" style="background-color: #4f46e5; color: #ffffff; padding: 14px 30px; font-size: 15px; font-weight: 600; text-decoration: none; border-radius: 10px; display: inline-block; box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3); letter-spacing: -0.2px;">
+          Atur Ulang Kata Sandi
+        </a>
+      </div>
+      
+      <p style="font-size: 13px; color: #64748b; margin-top: 24px; border-top: 1px solid #f1f5f9; padding-top: 20px;">
+        Tautan ini hanya berlaku selama <strong>1 jam</strong> demi keamanan akun Anda. Jika Anda tidak merasa meminta ini, Anda dapat mengabaikan email ini dengan aman.
+      </p>
+    </div>
+    
+    <!-- Footer -->
+    <div style="background-color: #f8fafc; padding: 24px 32px; text-align: center; border-top: 1px solid #e2e8f0;">
+      <p style="font-size: 12px; color: #94a3b8; margin: 0;">Email ini dikirim secara otomatis oleh sistem DoneRight.</p>
+      <p style="font-size: 12px; color: #94a3b8; margin: 8px 0 0 0;">&copy; 2026 DoneRight. All rights reserved.</p>
+    </div>
+  </div>
+</div>
+        `;
+
+        // 3. Send email asynchronously using try...catch
+        try {
+            await sendEmail({
+                to: email,
+                subject: "Atur Ulang Kata Sandi - DoneRight",
+                html: emailHtml,
+            });
+        } catch (mailError) {
+            console.error("Failed to send forgot password email, but token saved:", mailError.message);
+        }
 
         res.status(200).json({
-            message: "Password reset link has been sent to your email (dev mode)",
-            devResetUrl: resetUrl,
+            message: "Instruksi pengaturan ulang kata sandi telah dikirim ke email Anda.",
         });
     } catch (error) {
         console.error(error);
@@ -226,6 +350,60 @@ export const resetPassword = async (req, res) => {
         res.status(200).json({
             message: "Password has been reset successfully",
         });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({
+            message: "Internal server error",
+        });
+    }
+};
+
+// VERIFY EMAIL
+export const verifyEmail = async (req, res) => {
+    try {
+        const { token } = req.query;
+
+        if (!token) {
+            return res.status(400).json({
+                message: "Verification token is required",
+            });
+        }
+
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+
+        const query = `
+            SELECT * FROM users
+            WHERE verification_token = $1
+              AND verification_token_expires > CURRENT_TIMESTAMP
+              AND deleted_at IS NULL
+        `;
+        const result = await pool.query(query, [hashedToken]);
+        const user = result.rows[0];
+
+        if (!user) {
+            return res.status(400).send(`
+                <html>
+                  <body style="font-family: sans-serif; text-align: center; padding: 50px;">
+                    <h2 style="color: #ef4444;">Verifikasi Gagal</h2>
+                    <p>Tautan verifikasi tidak valid atau telah kedaluwarsa.</p>
+                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="color: #4f46e5;">Kembali ke Aplikasi</a>
+                  </body>
+                </html>
+            `);
+        }
+
+        await pool.query(
+            `UPDATE users
+             SET is_verified = TRUE, verification_token = NULL, verification_token_expires = NULL
+             WHERE id_users = $1`,
+            [user.id_users]
+        );
+
+        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        res.redirect(`${frontendUrl}/?verified=success`);
     } catch (error) {
         console.error(error);
         res.status(500).json({
