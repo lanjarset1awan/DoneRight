@@ -522,7 +522,7 @@
     margin-top: 12px;
     cursor: pointer;
     transition: all 0.2s ease;
-    text-decoration: underline;
+    text-decoration: none;
     display: inline-block;
 }
 
