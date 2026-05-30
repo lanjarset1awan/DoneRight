@@ -19,7 +19,8 @@ export default function Navbar({
     notifications,
     unreadCount,
     handleReadNotif,
-    handleReadAllNotifs
+    handleReadAllNotifs,
+    handleDeleteNotif
   } = useNotifications(token, showNotifBell);
 
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -183,19 +184,34 @@ export default function Navbar({
                             </span>
                           </div>
                         </div>
-                        {!notif.is_read && (
+                        <div className="notif-item-actions">
+                          {!notif.is_read && (
+                            <button 
+                              type="button"
+                              className="btn-mark-read-icon" 
+                              title="Tandai dibaca"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleReadNotif(notif.id_notifications);
+                              }}
+                            >
+                              ✓
+                            </button>
+                          )}
                           <button 
                             type="button"
-                            className="btn-mark-read-icon" 
-                            title="Tandai dibaca"
+                            className="btn-delete-notif-icon" 
+                            title="Hapus Notifikasi"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleReadNotif(notif.id_notifications);
+                              handleDeleteNotif(notif.id_notifications);
                             }}
                           >
-                            ✓
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} style={{ width: "14px", height: "14px" }}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
                           </button>
-                        )}
+                        </div>
                       </div>
                     ))
                   )}

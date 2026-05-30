@@ -220,33 +220,47 @@
     color: #94a3b8;
 }
 
-.btn-mark-read-icon {
+.notif-item-actions {
     position: absolute;
     right: 20px;
-    top: 14px;
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
+    top: 18px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: all 0.2s ease;
+}
+
+.notif-item:hover .notif-item-actions {
+    opacity: 1;
+}
+
+.btn-mark-read-icon,
+.btn-delete-notif-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
     border: 1px solid #e2e8f0;
     background-color: white;
-    color: #94a3b8;
+    color: #64748b;
     font-size: 11px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    opacity: 0;
-    transition: all 0.2s ease;
-}
-
-.notif-item:hover .btn-mark-read-icon {
-    opacity: 1;
+    transition: all 0.15s ease;
+    padding: 0;
 }
 
 .btn-mark-read-icon:hover {
-    background-color: var(--primary-color);
-    color: white;
-    border-color: var(--primary-color);
+    background-color: #ecfdf5;
+    color: #10b981;
+    border-color: #a7f3d0;
+}
+
+.btn-delete-notif-icon:hover {
+    background-color: #fef2f2;
+    color: #ef4444;
+    border-color: #fee2e2;
 }
 
 @media (max-width: 640px) {
@@ -259,5 +273,12 @@
         max-width: calc(100vw - 32px);
         border-radius: 12px;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+}
+
+@media (max-width: 1024px) {
+    /* Selalu tampilkan tombol aksi (baca & hapus) di layar tablet & HP karena tidak ada kursor hover */
+    .notif-item-actions {
+        opacity: 1;
     }
 }

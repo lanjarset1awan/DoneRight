@@ -160,3 +160,14 @@ export const markAllAsRead = async (userId) => {
     const result = await pool.query(query, [userId]);
     return result.rows;
 };
+
+// DELETE SINGLE NOTIFICATION
+export const deleteNotification = async (notificationId, userId) => {
+    const query = `
+        DELETE FROM notifications
+        WHERE id_notifications = $1 AND user_id = $2
+        RETURNING *
+    `;
+    const result = await pool.query(query, [notificationId, userId]);
+    return result.rows[0];
+};

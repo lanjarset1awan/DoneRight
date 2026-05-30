@@ -55,6 +55,20 @@ export default function useNotifications(token, showNotifBell) {
     }
   };
 
+  const handleDeleteNotif = async (id) => {
+    try {
+      const res = await fetch(`${BASE_URL}/notifications/${id}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setNotifications(prev => prev.filter(n => n.id_notifications !== id));
+      }
+    } catch (err) {
+      console.error("Delete notification error:", err);
+    }
+  };
+
   const unreadCount = notifications.filter(n => !n.is_read).length;
 
   return {
@@ -63,6 +77,7 @@ export default function useNotifications(token, showNotifBell) {
     unreadCount,
     fetchNotifications,
     handleReadNotif,
-    handleReadAllNotifs
+    handleReadAllNotifs,
+    handleDeleteNotif
   };
 }
