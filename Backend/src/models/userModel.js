@@ -79,7 +79,7 @@ export const updateUser = async (id, data) => {
             username = COALESCE($1, username),
             email = COALESCE($2, email),
             password_hash = COALESCE($3, password_hash),
-            avatar = COALESCE($4, avatar)
+            avatar = CASE WHEN $4 = 'REMOVE_AVATAR' THEN NULL ELSE COALESCE($4, avatar) END
         WHERE id_users = $5
         RETURNING id_users, username, email, role, created_at, avatar
     `;

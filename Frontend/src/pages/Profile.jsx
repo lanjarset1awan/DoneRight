@@ -19,7 +19,6 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onClose }
     setNewPassword,
     confirmPassword,
     setConfirmPassword,
-    avatarData,
     avatarPreview,
     currentPasswordVisible,
     setCurrentPasswordVisible,
@@ -35,6 +34,7 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onClose }
     fileInputRef,
     handleAvatarChange,
     triggerFileSelect,
+    handleRemoveAvatar,
     handleSubmit,
     handleDeleteAccount,
     handleCancelEdit,
@@ -72,6 +72,7 @@ export default function Profile({ token, user, onUserUpdate, onLogout, onClose }
             triggerFileSelect={triggerFileSelect}
             fileInputRef={fileInputRef}
             handleAvatarChange={handleAvatarChange}
+            handleRemoveAvatar={handleRemoveAvatar}
             getInitials={getInitials}
           />
 

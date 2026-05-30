@@ -61,6 +61,15 @@ export default function useProfileData(token, user, onUserUpdate, onLogout, onCl
     }
   };
 
+  const handleRemoveAvatar = () => {
+    setAvatarPreview("");
+    setAvatarData("REMOVE_AVATAR");
+    setErrorMsg("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
+
   const triggerFileSelect = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -209,6 +218,7 @@ export default function useProfileData(token, user, onUserUpdate, onLogout, onCl
     fileInputRef,
     handleAvatarChange,
     triggerFileSelect,
+    handleRemoveAvatar,
     handleSubmit,
     handleDeleteAccount,
     handleCancelEdit,

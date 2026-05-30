@@ -8,6 +8,7 @@ export default function ProfileAvatar({
   triggerFileSelect,
   fileInputRef,
   handleAvatarChange,
+  handleRemoveAvatar,
   getInitials,
 }) {
   return (
@@ -31,6 +32,18 @@ export default function ProfileAvatar({
           </div>
         )}
       </div>
+      
+      {/* REMOVE AVATAR BUTTON (only in edit mode if avatar exists) */}
+      {isEditing && avatarPreview && (
+        <button
+          type="button"
+          className="profile-remove-avatar-btn"
+          onClick={handleRemoveAvatar}
+          title="Hapus Foto Profil"
+        >
+          Hapus Foto Profil
+        </button>
+      )}
       
       {/* HIDDEN FILE INPUT */}
       <input
