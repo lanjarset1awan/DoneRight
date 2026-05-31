@@ -128,4 +128,4 @@ DoneRight/
 
 ## 📄 Lisensi
 
-Proyek ini dibuat untuk keperluan akademik dan pengembangan pribadi mahasiswa. Lisensi bebas digunakan untuk pembelajaran lebih lanjut.
+Proyek ini dibuat untuk keperluan akademik dan pengembangan pribadi kami. Lisensi bebas digunakan untuk pembelajaran lebih lanjut.
