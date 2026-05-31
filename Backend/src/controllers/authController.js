@@ -75,8 +75,11 @@ export const register = async (
         );
 
         // Send verification email
-        const backendUrl = process.env.BACKEND_URL || "http://localhost:5000";
-        const verificationUrl = `${backendUrl}/api/auth/verify-email?token=${verificationToken}`;
+        const host = req.get('host') || "localhost:5000";
+        const protocol = host.includes('localhost') ? 'http' : 'https';
+        const backendUrl = `${protocol}://${host}`;
+        const frontendUrl = req.get('origin') || process.env.FRONTEND_URL || "http://localhost:5173";
+        const verificationUrl = `${backendUrl}/api/auth/verify-email?token=${verificationToken}&f=${encodeURIComponent(frontendUrl)}`;
 
         const emailHtml = `
 <div style="font-family: 'Inter', 'Helvetica Neue', Helvetica, Arial, sans-serif; background-color: #f8fafc; padding: 40px 20px; color: #1e293b; line-height: 1.6;">
@@ -246,7 +249,7 @@ export const forgotPassword = async (req, res) => {
             [hashedToken, expires, user.id_users]
         );
 
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+        const frontendUrl = req.get('origin') || process.env.FRONTEND_URL || "http://localhost:5173";
         const resetUrl = `${frontendUrl}/?resetToken=${resetToken}`;
 
         // 2. Build email template
@@ -361,7 +364,7 @@ export const resetPassword = async (req, res) => {
 // VERIFY EMAIL
 export const verifyEmail = async (req, res) => {
     try {
-        const { token } = req.query;
+        const { token, f } = req.query;
 
         if (!token) {
             return res.status(400).json({
@@ -383,13 +386,32 @@ export const verifyEmail = async (req, res) => {
         const result = await pool.query(query, [hashedToken]);
         const user = result.rows[0];
 
+        // Determine dynamic frontend URL for redirection
+        const fallbackFrontend = process.env.FRONTEND_URL || "http://localhost:5173";
+        let redirectUrl = fallbackFrontend;
+        if (f) {
+            try {
+                const parsed = new URL(f);
+                if (
+                    parsed.hostname === "localhost" ||
+                    parsed.hostname === "127.0.0.1" ||
+                    parsed.hostname.endsWith(".vercel.app") ||
+                    (process.env.FRONTEND_URL && new URL(process.env.FRONTEND_URL).hostname === parsed.hostname)
+                ) {
+                    redirectUrl = f;
+                }
+            } catch (e) {
+                // invalid URL format, ignore and use fallback
+            }
+        }
+
         if (!user) {
             return res.status(400).send(`
                 <html>
                   <body style="font-family: sans-serif; text-align: center; padding: 50px;">
                     <h2 style="color: #ef4444;">Verifikasi Gagal</h2>
                     <p>Tautan verifikasi tidak valid atau telah kedaluwarsa.</p>
-                    <a href="${process.env.FRONTEND_URL || 'http://localhost:5173'}" style="color: #4f46e5;">Kembali ke Aplikasi</a>
+                    <a href="${redirectUrl}" style="color: #4f46e5;">Kembali ke Aplikasi</a>
                   </body>
                 </html>
             `);
@@ -402,8 +424,7 @@ export const verifyEmail = async (req, res) => {
             [user.id_users]
         );
 
-        const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-        res.redirect(`${frontendUrl}/?verified=success`);
+        res.redirect(`${redirectUrl}/?verified=success`);
     } catch (error) {
         console.error(error);
         res.status(500).json({
