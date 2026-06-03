@@ -37,7 +37,7 @@ export const getOverdueTasks =
       WHERE
         deleted_at IS NULL
         AND (
-          (is_completed = false AND deadline < NOW())
+          (is_completed = false AND deadline < NOW() AT TIME ZONE 'Asia/Jakarta')
           OR
           (is_completed = true AND completed_at > deadline)
         )

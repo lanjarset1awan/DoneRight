@@ -23,8 +23,8 @@ export const checkAndCreateH1Notifications = async (userId) => {
           AND is_completed = FALSE 
           AND deleted_at IS NULL 
           AND deadline IS NOT NULL 
-          AND deadline >= NOW() 
-          AND deadline <= NOW() + INTERVAL '1 day'
+          AND deadline >= NOW() AT TIME ZONE 'Asia/Jakarta' 
+          AND deadline <= (NOW() AT TIME ZONE 'Asia/Jakarta') + INTERVAL '1 day'
     `;
 
     const tasksResult = await pool.query(findH1TasksQuery, [userId]);

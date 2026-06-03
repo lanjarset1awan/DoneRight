@@ -63,7 +63,7 @@ pool.query("SELECT NOW()")
                     type VARCHAR(50) DEFAULT 'deadline_h1',
                     message TEXT NOT NULL,
                     is_read BOOLEAN DEFAULT FALSE,
-                    created_at TIMESTAMP DEFAULT NOW()
+                    created_at TIMESTAMP DEFAULT (NOW() AT TIME ZONE 'Asia/Jakarta')
                 )
             `);
             

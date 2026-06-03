@@ -138,7 +138,7 @@ export const toggleTaskStatus =
                     CASE
                         WHEN
                             is_completed = FALSE
-                        THEN NOW()
+                        THEN NOW() AT TIME ZONE 'Asia/Jakarta'
 
                         ELSE NULL
                     END

@@ -36,7 +36,7 @@ export const getGlobalStatistics =
                         (
                             t.is_completed = FALSE
                             AND t.deadline IS NOT NULL
-                            AND t.deadline < NOW()
+                            AND t.deadline < NOW() AT TIME ZONE 'Asia/Jakarta'
                         )
                 ) AS overdue,
 
@@ -45,7 +45,7 @@ export const getGlobalStatistics =
                         t.is_completed = FALSE
                         AND (
                             t.deadline IS NULL
-                            OR t.deadline >= NOW()
+                            OR t.deadline >= NOW() AT TIME ZONE 'Asia/Jakarta'
                         )
                 ) AS pending,
 
@@ -109,7 +109,7 @@ export const getUserStatistics =
                         (
                             t.is_completed = FALSE
                             AND t.deadline IS NOT NULL
-                            AND t.deadline < NOW()
+                            AND t.deadline < NOW() AT TIME ZONE 'Asia/Jakarta'
                         )
                 ) AS overdue,
 
@@ -118,7 +118,7 @@ export const getUserStatistics =
                         t.is_completed = FALSE
                         AND (
                             t.deadline IS NULL
-                            OR t.deadline >= NOW()
+                            OR t.deadline >= NOW() AT TIME ZONE 'Asia/Jakarta'
                         )
                 ) AS pending,
 
@@ -188,7 +188,7 @@ export const getSingleUserStats =
                         (
                             t.is_completed = FALSE
                             AND t.deadline IS NOT NULL
-                            AND t.deadline < NOW()
+                            AND t.deadline < NOW() AT TIME ZONE 'Asia/Jakarta'
                         )
                 ) AS overdue,
 
@@ -197,7 +197,7 @@ export const getSingleUserStats =
                         t.is_completed = FALSE
                         AND (
                             t.deadline IS NULL
-                            OR t.deadline >= NOW()
+                            OR t.deadline >= NOW() AT TIME ZONE 'Asia/Jakarta'
                         )
                 ) AS pending,
 
