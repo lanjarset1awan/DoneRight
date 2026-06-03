@@ -54,7 +54,8 @@ export const checkAndCreateH1Notifications = async (userId) => {
             // 4. Send email notification if user email domain is valid
             if (isEmailValid) {
                 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
-                const formattedDeadline = new Date(task.deadline).toLocaleString("id-ID", {
+                const deadlineStr = typeof task.deadline === 'string' ? task.deadline.replace(' ', 'T') : task.deadline;
+                const formattedDeadline = new Date(deadlineStr).toLocaleString("id-ID", {
                     dateStyle: "full",
                     timeStyle: "short",
                 });

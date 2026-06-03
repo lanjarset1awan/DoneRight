@@ -312,7 +312,8 @@ export default function useAdminDashboardData(token) {
   const overdueCount = overdueTasks.length;
   const now = new Date();
   const activeCount = allTasks.filter((t) => {
-    const deadline = t.deadline ? new Date(t.deadline) : null;
+    const deadlineStr = t.deadline && (typeof t.deadline === 'string' ? t.deadline.replace(' ', 'T') : t.deadline);
+    const deadline = deadlineStr ? new Date(deadlineStr) : null;
     const isOverdue = !t.is_completed && deadline && deadline < now;
     return !t.is_completed && !isOverdue;
   }).length;

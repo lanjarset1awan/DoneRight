@@ -44,7 +44,8 @@ export default function TrashList({
         ) : (
           <div className="trash-list-container">
             {trashTasks.map((task) => {
-              const deadline = task.deadline ? new Date(task.deadline) : null;
+              const deadlineStr = task.deadline && (typeof task.deadline === 'string' ? task.deadline.replace(' ', 'T') : task.deadline);
+              const deadline = deadlineStr ? new Date(deadlineStr) : null;
               return (
                 <div className="task-item trash-task-item" key={task.id_tasks}>
                   <div className="task-left">

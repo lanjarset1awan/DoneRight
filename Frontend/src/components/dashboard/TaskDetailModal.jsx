@@ -58,7 +58,7 @@ export default function TaskDetailModal({
               <span className="detail-label">Deadline</span>
               <span className="detail-value">
                 {selectedTask.deadline
-                  ? new Date(selectedTask.deadline).toLocaleString("id-ID")
+                  ? new Date(typeof selectedTask.deadline === 'string' ? selectedTask.deadline.replace(' ', 'T') : selectedTask.deadline).toLocaleString("id-ID")
                   : "-"}
               </span>
             </div>
@@ -68,7 +68,7 @@ export default function TaskDetailModal({
               <div className="dashboard-detail-status-wrapper">
                 {selectedTask.is_completed ? (
                   <span className="badge badge-completed dashboard-detail-badge">✓ Selesai</span>
-                ) : (selectedTask.deadline && new Date(selectedTask.deadline) < new Date() ? (
+                ) : (selectedTask.deadline && new Date(typeof selectedTask.deadline === 'string' ? selectedTask.deadline.replace(' ', 'T') : selectedTask.deadline) < new Date() ? (
                   <span className="badge badge-overdue dashboard-detail-badge">⚠ Overdue</span>
                 ) : (
                   <span className="badge badge-pending dashboard-detail-badge" style={{ backgroundColor: "#f8fafc", border: "1px solid #cbd5e1", color: "#64748b", fontWeight: 600 }}>Aktif</span>

@@ -51,7 +51,8 @@ export default function Navbar({
 
   const formatTimeAgo = (dateStr) => {
     const now = new Date();
-    const date = new Date(dateStr);
+    const formattedStr = typeof dateStr === 'string' ? dateStr.replace(' ', 'T') : dateStr;
+    const date = new Date(formattedStr);
     const diffMs = now - date;
     const diffMins = Math.floor(diffMs / 60000);
     const diffHours = Math.floor(diffMins / 60);
@@ -176,7 +177,7 @@ export default function Navbar({
                           <div className="notif-item-meta">
                             {notif.task_deadline && (
                               <span className="notif-item-deadline">
-                                Batas: {new Date(notif.task_deadline).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                Batas: {new Date(typeof notif.task_deadline === 'string' ? notif.task_deadline.replace(' ', 'T') : notif.task_deadline).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </span>
                             )}
                             <span className="notif-item-time">

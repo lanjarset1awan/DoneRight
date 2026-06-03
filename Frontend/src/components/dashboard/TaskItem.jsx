@@ -6,7 +6,8 @@ export default function TaskItem({
   onOpenDetail,
   showCategoryBadge = true
 }) {
-  const deadline = task.deadline ? new Date(task.deadline) : null;
+  const deadlineStr = task.deadline && (typeof task.deadline === 'string' ? task.deadline.replace(' ', 'T') : task.deadline);
+  const deadline = deadlineStr ? new Date(deadlineStr) : null;
   const completedAt = task.completed_at ? new Date(task.completed_at) : null;
   const now = new Date();
   const isOverdue = deadline && (

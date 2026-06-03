@@ -23,7 +23,8 @@ export default function TaskModal({
       setTaskCategory(editingTask.category_id || "");
       setTaskPriority(editingTask.priority || "medium");
       if (editingTask.deadline) {
-        const date = new Date(editingTask.deadline);
+        const deadlineStr = typeof editingTask.deadline === 'string' ? editingTask.deadline.replace(' ', 'T') : editingTask.deadline;
+        const date = new Date(deadlineStr);
         const tzOffset = date.getTimezoneOffset() * 60000;
         const localISOTime = new Date(date.getTime() - tzOffset).toISOString().slice(0, 16);
         setTaskDeadline(localISOTime);

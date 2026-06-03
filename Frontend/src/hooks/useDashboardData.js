@@ -339,7 +339,8 @@ export default function useDashboardData(token) {
     // Status filter
     let matchesStatus = true;
     const now = new Date();
-    const deadline = task.deadline ? new Date(task.deadline) : null;
+    const deadlineStr = task.deadline && (typeof task.deadline === 'string' ? task.deadline.replace(' ', 'T') : task.deadline);
+    const deadline = deadlineStr ? new Date(deadlineStr) : null;
     const completedAt = task.completed_at ? new Date(task.completed_at) : null;
     const isOverdue = deadline && (
       (!task.is_completed && deadline < now) ||
@@ -358,7 +359,11 @@ export default function useDashboardData(token) {
   })
     .sort((a, b) => {
       if (sortBy === "deadline") {
-        return new Date(a.deadline) - new Date(b.deadline);
+        const aDeadlineStr = a.deadline && (typeof a.deadline === 'string' ? a.deadline.replace(' ', 'T') : a.deadline);
+        const bDeadlineStr = b.deadline && (typeof b.deadline === 'string' ? b.deadline.replace(' ', 'T') : b.deadline);
+        const aDate = aDeadlineStr ? new Date(aDeadlineStr) : new Date(0);
+        const bDate = bDeadlineStr ? new Date(bDeadlineStr) : new Date(0);
+        return aDate - bDate;
       }
 
       if (sortBy === "newest") {
