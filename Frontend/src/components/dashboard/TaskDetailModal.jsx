@@ -58,7 +58,14 @@ export default function TaskDetailModal({
               <span className="detail-label">Deadline</span>
               <span className="detail-value">
                 {selectedTask.deadline
-                  ? new Date(typeof selectedTask.deadline === 'string' ? selectedTask.deadline.replace(' ', 'T') : selectedTask.deadline).toLocaleString("id-ID")
+                  ? new Date(typeof selectedTask.deadline === 'string' ? selectedTask.deadline.replace(' ', 'T') : selectedTask.deadline).toLocaleString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })
                   : "-"}
               </span>
             </div>

@@ -177,7 +177,7 @@ export default function Navbar({
                           <div className="notif-item-meta">
                             {notif.task_deadline && (
                               <span className="notif-item-deadline">
-                                Batas: {new Date(typeof notif.task_deadline === 'string' ? notif.task_deadline.replace(' ', 'T') : notif.task_deadline).toLocaleDateString("id-ID", { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                Batas: {new Date(typeof notif.task_deadline === 'string' ? notif.task_deadline.replace(' ', 'T') : notif.task_deadline).toLocaleDateString("id-ID", { weekday: 'long', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
                               </span>
                             )}
                             <span className="notif-item-time">

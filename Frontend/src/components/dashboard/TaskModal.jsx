@@ -127,7 +127,14 @@ export default function TaskModal({
             </div>
 
             <div className="form-group">
-              <label>Deadline *</label>
+              <label>
+                Deadline *
+                {taskDeadline && (
+                  <span style={{ fontWeight: "normal", color: "#64748b", marginLeft: "6px" }}>
+                    ({new Date(taskDeadline).toLocaleDateString("id-ID", { weekday: "long" })})
+                  </span>
+                )}
+              </label>
               <input
                 type="datetime-local"
                 className="form-input"

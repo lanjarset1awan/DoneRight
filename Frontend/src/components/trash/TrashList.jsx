@@ -65,7 +65,7 @@ export default function TrashList({
                       )}
                       {deadline && (
                         <span className="badge badge-deadline">
-                          Deadline: {deadline.toLocaleDateString("id-ID")}{" "}
+                          Deadline: {deadline.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}{" "}
                           {deadline.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })}
                         </span>
                       )}

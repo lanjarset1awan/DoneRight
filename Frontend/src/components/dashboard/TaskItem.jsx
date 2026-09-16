@@ -46,7 +46,7 @@ export default function TaskItem({
 
           {deadline && (
             <span className="badge badge-deadline">
-              Deadline: {deadline.toLocaleDateString("id-ID")}
+              Deadline: {deadline.toLocaleDateString("id-ID", { weekday: "long", day: "numeric", month: "short", year: "numeric" })}
             </span>
           )}
 
