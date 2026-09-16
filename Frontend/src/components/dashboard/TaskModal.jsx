@@ -13,7 +13,7 @@ export default function TaskModal({
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
   const [taskCategory, setTaskCategory] = useState("");
-  const [taskPriority, setTaskPriority] = useState("medium");
+  const [taskPriority, setTaskPriority] = useState("high");
   const [taskDeadline, setTaskDeadline] = useState("");
 
   useEffect(() => {
@@ -21,7 +21,7 @@ export default function TaskModal({
       setTaskTitle(editingTask.title);
       setTaskDesc(editingTask.description || "");
       setTaskCategory(editingTask.category_id || "");
-      setTaskPriority(editingTask.priority || "medium");
+      setTaskPriority(editingTask.priority || "high");
       if (editingTask.deadline) {
         const deadlineStr = typeof editingTask.deadline === 'string' ? editingTask.deadline.replace(' ', 'T') : editingTask.deadline;
         const date = new Date(deadlineStr);
@@ -35,7 +35,7 @@ export default function TaskModal({
       setTaskTitle("");
       setTaskDesc("");
       setTaskCategory("");
-      setTaskPriority("medium");
+      setTaskPriority("high");
       setTaskDeadline("");
     }
   }, [editingTask, show]);

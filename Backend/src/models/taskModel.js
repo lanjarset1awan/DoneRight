@@ -14,6 +14,7 @@ export const getTasksByUser =
       WHERE t.user_id = $1
         AND t.deleted_at IS NULL
       ORDER BY
+        t.deadline ASC NULLS LAST,
         t.created_at DESC
     `;
 
@@ -48,7 +49,7 @@ export const createTask =
             data.category_id || null,
             data.title,
             data.description || null,
-            data.priority || "medium",
+            data.priority || "high",
             data.deadline || null,
         ];
 
@@ -86,7 +87,7 @@ export const updateTask =
             data.category_id || null,
             data.title,
             data.description || null,
-            data.priority || "medium",
+            data.priority || "high",
             data.deadline || null,
             taskId,
             userId,

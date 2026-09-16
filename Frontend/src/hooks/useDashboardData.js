@@ -13,7 +13,7 @@ export default function useDashboardData(token) {
   const [filterCategory, setFilterCategory] = useState("");
   const [filterPriority, setFilterPriority] = useState("");
   const [filterStatus, setFilterStatus] = useState("");
-  const [sortBy, setSortBy] = useState("newest");
+  const [sortBy, setSortBy] = useState("deadline");
   const [viewMode, setViewMode] = useState("list");
 
   // Modals & Navigation
@@ -361,8 +361,13 @@ export default function useDashboardData(token) {
       if (sortBy === "deadline") {
         const aDeadlineStr = a.deadline && (typeof a.deadline === 'string' ? a.deadline.replace(' ', 'T') : a.deadline);
         const bDeadlineStr = b.deadline && (typeof b.deadline === 'string' ? b.deadline.replace(' ', 'T') : b.deadline);
-        const aDate = aDeadlineStr ? new Date(aDeadlineStr) : new Date(0);
-        const bDate = bDeadlineStr ? new Date(bDeadlineStr) : new Date(0);
+        
+        if (!aDeadlineStr && !bDeadlineStr) return 0;
+        if (!aDeadlineStr) return 1;
+        if (!bDeadlineStr) return -1;
+
+        const aDate = new Date(aDeadlineStr);
+        const bDate = new Date(bDeadlineStr);
         return aDate - bDate;
       }
 
@@ -376,7 +381,18 @@ export default function useDashboardData(token) {
         low: 2,
       };
 
-      return priorityOrder[a.priority] - priorityOrder[b.priority];
+      const diff = priorityOrder[a.priority] - priorityOrder[b.priority];
+      if (diff !== 0) return diff;
+
+      // Jika prioritas sama, urutkan berdasarkan deadline paling dekat
+      const aDeadlineStr = a.deadline && (typeof a.deadline === 'string' ? a.deadline.replace(' ', 'T') : a.deadline);
+      const bDeadlineStr = b.deadline && (typeof b.deadline === 'string' ? b.deadline.replace(' ', 'T') : b.deadline);
+
+      if (!aDeadlineStr && !bDeadlineStr) return 0;
+      if (!aDeadlineStr) return 1;
+      if (!bDeadlineStr) return -1;
+
+      return new Date(aDeadlineStr) - new Date(bDeadlineStr);
     });
 
   const groupedTasks = filteredTasks.reduce((groups, task) => {
